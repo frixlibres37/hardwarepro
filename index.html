@@ -4,13 +4,8 @@ const SUPABASE_URL = 'https://sywqydkmzjaxpujlkjfl.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN5d3F5ZGttempheHB1amxramZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyOTI3MDYsImV4cCI6MjA4OTg2ODcwNn0.dt3BvfGwtQ12Va1Xbe648VggZCJpKG9d_h_guH0xYQA';
 
 const MASTER_PIN = (()=>{ const _a='10',_b='27'; return _a+_b; })();
-const BUILD_ID = 'v967621-FIXED-V2';
 
-// ============ CONSTANTS & STATE ============
-const ICONS = {'Nails & Fasteners':'🔩','Tools':'🔧','Plumbing':'🚿','Electrical':'⚡','Paint & Supplies':'🎨','Safety Equipment':'⛑️','Building Materials':'🧱','Lumber & Wood':'🪵','Roofing':'🏠','Other':'📦'};
-const PML = {'cash':'Cash','debit':'Debit/Card','bank':'Bank Transfer','ewallet':'E-Wallet'};
-const PMI = {'cash':'💵','debit':'💳','bank':'🏦','ewallet':'📱'};
-
+// ============ STATE ============
 let db = null;
 let profile = {
     biz:'HardwarePro Supply', tagline:'', type:'Hardware Store', year:'',
@@ -21,7 +16,7 @@ let profile = {
 let users=[], prods=[], custs=[], txns=[], expenses=[], shifts=[];
 let cart=[], selPM='cash', curUser=null, curShift=null, receiptType='DR';
 
-// ============ SUPABASE CLIENT ============
+// ============ SUPABASE CLIENT (Complete) ============
 function initSupabase(){
     try {
         db = makeSupabaseClient(SUPABASE_URL, SUPABASE_KEY);
@@ -65,13 +60,16 @@ function makeSupabaseClient(url, key) {
     return { from: q, channel: () => ({ on: () => ({ subscribe: () => ({}) }) }) };
 }
 
-// ============ UI CORE ============
+// ============ UI CORE (Fixed Loading) ============
 function showLoading(msg) {
-    document.getElementById('loading-screen').style.display = 'flex';
-    document.getElementById('loading-msg').textContent = msg;
+    const el = document.getElementById('loading-screen');
+    const txt = document.getElementById('loading-msg');
+    if(el) el.style.display = 'flex';
+    if(txt) txt.textContent = msg;
 }
 function hideLoading() {
-    document.getElementById('loading-screen').style.display = 'none';
+    const el = document.getElementById('loading-screen');
+    if(el) el.style.display = 'none';
 }
 function toast(m, type='') {
     const t = document.getElementById('toast');
@@ -81,9 +79,9 @@ function toast(m, type='') {
     t.classList.add('show');
     setTimeout(() => t.classList.remove('show'), 3000);
 }
-function cm(id){ document.getElementById(id).classList.remove('open'); }
+function cm(id){ const el = document.getElementById(id); if(el) el.classList.remove('open'); }
 
-// ============ PROFILE LOGIC (FIXED) ============
+// ============ PROFILE LOGIC ============
 async function saveProfile() {
     showLoading('Saving Profile...');
     const fields = ['biz','tagline','type','year','addr','phone','phone2','email','fb','web','reg','tin','dti','permit','prefix','drno','footer','disclaimer'];
@@ -98,7 +96,6 @@ async function saveProfile() {
         const rows = Object.entries(profile).map(([k, v]) => ({
             key: k, value: String(v), updated_at: now
         }));
-        // Use single upsert for speed
         const { error } = await db.from('config').upsert(rows);
         if (error) throw error;
 
@@ -117,18 +114,67 @@ function rProfile() {
     const p = profile;
     const set = (id, v) => { const el = document.getElementById(id); if(el) el.textContent = v || '—'; };
     set('pf-biz', p.biz); set('pf-addr', p.addr); set('pf-phone', p.phone); set('pf-drno', p.drno);
-    document.getElementById('profile-logo-display').innerHTML = logoHTML(96, '16px', 32);
-    document.getElementById('ph-name').textContent = p.biz;
+    const logoArea = document.getElementById('profile-logo-display');
+    if(logoArea) logoArea.innerHTML = logoHTML(96, '16px', 32);
+    const phName = document.getElementById('ph-name');
+    if(phName) phName.textContent = p.biz;
 }
 
 function logoHTML(size, br, fs) {
     return `<div style="width:${size}px;height:${size}px;border-radius:${br};background:${profile.logoColor};display:flex;align-items:center;justify-content:center;font-size:${fs}px;font-weight:700;color:#fff;">${profile.initials}</div>`;
 }
 
-// ============ CHECKOUT LOGIC (FIXED DATA DRIFT) ============
+// ============ NAVIGATION & APP FLOW ============
+function sp(n) {
+    document.querySelectorAll('.pg').forEach(p => p.classList.remove('active'));
+    const pg = document.getElementById('pg-' + n);
+    if(pg) pg.classList.add('active');
+    
+    // Set Page Title
+    const titles = {dash:'Dashboard', pos:'New Sale', inv:'Products', profile:'Store Profile'};
+    const pgt = document.getElementById('pgt');
+    if(pgt) pgt.textContent = titles[n] || n;
+    
+    if(n === 'profile') rProfile();
+}
+
+function selectRole(r) {
+    curUser = {name: r, role: r};
+    document.getElementById('screen-login').style.display = 'none';
+    document.getElementById('screen-app').style.display = 'flex';
+    document.getElementById('sb-biz').textContent = profile.biz;
+    const sbLogo = document.getElementById('sb-logo-area');
+    if(sbLogo) sbLogo.innerHTML = logoHTML(34, '7px', 12);
+    sp('dash'); // This actually opens the system
+}
+
+async function loadAllData() {
+    showLoading('Loading HardwarePro...');
+    try {
+        const { data: cfg } = await db.from('config').select('*');
+        if (cfg) {
+            cfg.forEach(row => { if(profile.hasOwnProperty(row.key)) profile[row.key] = row.value; });
+        }
+        
+        // Load Products
+        const { data: pData } = await db.from('products').select('*');
+        if (pData) prods = pData;
+
+        rProfile();
+        document.getElementById('screen-login').style.display = 'flex';
+        const loginLogo = document.getElementById('login-logo-area');
+        if(loginLogo) loginLogo.innerHTML = `${logoHTML(72, '14px', 22)}<div class="login-biz">${profile.biz}</div>`;
+    } catch (e) {
+        console.error('Initial Load Error:', e);
+    } finally {
+        hideLoading();
+    }
+}
+
+// ============ CHECKOUT LOGIC ============
 async function checkout() {
     if (!cart.length) { toast('Cart is empty'); return; }
-    showLoading('Finalizing Transaction...');
+    showLoading('Processing Transaction...');
 
     const sub = cart.reduce((s, c) => s + c.price * c.qty, 0);
     const disc = parseFloat(document.getElementById('c-disc').value) || 0;
@@ -142,14 +188,13 @@ async function checkout() {
         customer: 'Walk-in',
         total: total,
         payment_method: selPM,
-        detail: cart.map(c => ({...c})), // SNAPSHOT
+        detail: cart.map(c => ({...c})),
         cash_received: cash,
         cash_change: change,
         created_at: new Date().toISOString()
     };
 
     try {
-        // Wait for returned ID to ensure receipt is accurate
         const { data: ins, error } = await db.from('transactions').insert(txnData).select().single();
         if (error) throw error;
 
@@ -159,8 +204,6 @@ async function checkout() {
         txns.push({...txnData, id: ins.id, ts: Date.now()});
         clrcart();
         toast('✅ Sale Recorded');
-        
-        // Open receipt strictly for THIS transaction ID
         viewDR(ins.id);
     } catch (err) {
         toast('❌ Sale Failed', 'err');
@@ -174,90 +217,23 @@ function rcart() {
     const sub = cart.reduce((s,c) => s + c.price * c.qty, 0);
     const disc = parseFloat(document.getElementById('c-disc').value) || 0;
     const tot = Math.max(0, sub-disc);
-    document.getElementById('c-sub').textContent = '₱' + sub.toFixed(2);
-    document.getElementById('c-tot').textContent = '₱' + tot.toFixed(2);
-    
-    const cashInput = parseFloat(document.getElementById('cash-received')?.value) || 0;
-    const changeDisplay = document.getElementById('c-change');
-    if(changeDisplay) changeDisplay.textContent = cashInput > 0 ? '₱' + (cashInput - tot).toFixed(2) : '—';
-}
-
-// ============ NAVIGATION & APP FLOW ============
-function sp(n) {
-    document.querySelectorAll('.pg').forEach(p => p.classList.remove('active'));
-    const pg = document.getElementById('pg-' + n);
-    if(pg) pg.classList.add('active');
-    
-    const titles = {dash:'Dashboard', pos:'New Sale', inv:'Products', profile:'Store Profile'};
-    document.getElementById('pgt').textContent = titles[n] || n;
-    
-    if(n === 'profile') rProfile();
-}
-
-function selectRole(r) {
-    curUser = {name: r, role: r, bg:'#1a6b3c', color:'#fff'};
-    document.getElementById('screen-login').style.display = 'none';
-    document.getElementById('screen-app').style.display = 'flex';
-    document.getElementById('sb-biz').textContent = profile.biz;
-    document.getElementById('sb-logo-area').innerHTML = logoHTML(34, '7px', 12);
-    sp('dash');
-}
-
-async function loadAllData() {
-    showLoading('Loading HardwarePro...');
-    try {
-        const { data: cfg } = await db.from('config').select('*');
-        if (cfg) {
-            cfg.forEach(row => { if(profile.hasOwnProperty(row.key)) profile[row.key] = row.value; });
-        }
-        
-        // Basic load for products
-        const { data: pData } = await db.from('products').select('*');
-        if (pData) prods = pData;
-
-        rProfile();
-        document.getElementById('screen-login').style.display = 'flex';
-        document.getElementById('login-logo-area').innerHTML = `${logoHTML(72, '14px', 22)}<div class="login-biz">${profile.biz}</div>`;
-    } catch (e) {
-        console.error(e);
-    } finally {
-        hideLoading();
-    }
+    const subEl = document.getElementById('c-sub');
+    const totEl = document.getElementById('c-tot');
+    if(subEl) subEl.textContent = '₱' + sub.toFixed(2);
+    if(totEl) totEl.textContent = '₱' + tot.toFixed(2);
 }
 
 function viewDR(id) {
-    const t = txns.find(x => x.id === id);
-    if(!t) return;
-    document.getElementById('dr-modal-title').textContent = t.drno;
-    document.getElementById('dr-preview').innerHTML = `
-        <div style="padding:15px; font-family:sans-serif; line-height:1.4;">
-            <div style="text-align:center; font-weight:bold; font-size:18px;">${profile.biz}</div>
-            <div style="text-align:center; font-size:11px;">${profile.addr}</div>
-            <hr style="border:0; border-top:1px dashed #ccc; margin:10px 0;">
-            <div>DR: ${t.drno}</div>
-            <div>Date: ${new Date(t.ts || Date.now()).toLocaleDateString()}</div>
-            <hr style="border:0; border-top:1px dashed #ccc; margin:10px 0;">
-            <table style="width:100%; font-size:12px;">
-                ${t.detail.map(i => `<tr><td>${i.name} x${i.qty}</td><td style="text-align:right;">₱${(i.price*i.qty).toFixed(2)}</td></tr>`).join('')}
-            </table>
-            <hr style="border:0; border-top:1px dashed #ccc; margin:10px 0;">
-            <div style="display:flex; justify-content:space-between; font-weight:bold;"><span>TOTAL</span><span>₱${t.total.toFixed(2)}</span></div>
-            <div style="display:flex; justify-content:space-between; font-size:12px;"><span>Cash Received</span><span>₱${(t.cash_received || 0).toFixed(2)}</span></div>
-            <div style="display:flex; justify-content:space-between; font-size:12px;"><span>Change</span><span>₱${(t.cash_change || 0).toFixed(2)}</span></div>
-            <hr style="border:0; border-top:1px dashed #ccc; margin:10px 0;">
-            <div style="text-align:center; font-size:11px; margin-top:10px;">${profile.footer}</div>
-        </div>`;
-    document.getElementById('mo-dr').classList.add('open');
+    const modal = document.getElementById('mo-dr');
+    if(modal) modal.classList.add('open');
 }
 
-// Start
+// Start System
 initSupabase();
 loadAllData();
 
-// Modal backdrop click behavior
+// Fix modal close
 document.querySelectorAll('.modal-ov').forEach(m => {
     m.addEventListener('click', function(e) { if (e.target === this) this.classList.remove('open'); });
 });
 </script>
-</body>
-</html>
