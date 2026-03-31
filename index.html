@@ -1,8 +1,16 @@
+<script>
 // ============ SUPABASE CONFIG ============
 const SUPABASE_URL = 'https://sywqydkmzjaxpujlkjfl.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN5d3F5ZGttempheHB1amxramZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQyOTI3MDYsImV4cCI6MjA4OTg2ODcwNn0.dt3BvfGwtQ12Va1Xbe648VggZCJpKG9d_h_guH0xYQA';
 
+// ============ MASTER PIN ============
 const MASTER_PIN = (()=>{ const _a='10',_b='27'; return _a+_b; })();
+const BUILD_ID = 'v967621-FIXED';
+
+// ============ CONSTANTS ============
+const ICONS = {'Nails & Fasteners':'🔩','Tools':'🔧','Plumbing':'🚿','Electrical':'⚡','Paint & Supplies':'🎨','Safety Equipment':'⛑️','Building Materials':'🧱','Lumber & Wood':'🪵','Roofing':'🏠','Other':'📦'};
+const PML = {'cash':'Cash','debit':'Debit/Card','bank':'Bank Transfer','ewallet':'E-Wallet'};
+const PMI = {'cash':'💵','debit':'💳','bank':'🏦','ewallet':'📱'};
 
 // ============ STATE ============
 let db = null;
@@ -18,45 +26,71 @@ let cart=[], selPM='cash', curUser=null, curShift=null, receiptType='DR';
 
 // ============ SUPABASE CLIENT ============
 function initSupabase(){
-    try{db=makeSupabaseClient(SUPABASE_URL,SUPABASE_KEY);return true;}
-    catch(e){console.error(e);return false;}
+    try {
+        db = makeSupabaseClient(SUPABASE_URL, SUPABASE_KEY);
+        return true;
+    } catch(e) { return false; }
 }
 
-function makeSupabaseClient(url,key){
-    const H={'apikey':key,'Authorization':'Bearer '+key,'Content-Type':'application/json','Prefer':'return=representation'};
-    function q(table){
-        let _f=[],_s='*',_sing=false;
-        const o={
-            select(s){_s=s||'*';return o;},
-            single(){_sing=true;return o;},
-            eq(c,v){_f.push(c+'=eq.'+encodeURIComponent(v));return o;},
-            async _go(method,body){
-                let ep=url+'/rest/v1/'+table; let ps=['select='+encodeURIComponent(_s)];
-                _f.forEach(f=>ps.push(f)); ep+='?'+ps.join('&');
-                const h={...H}; if(_sing) h.Accept='application/vnd.pgrst.object+json';
-                const opts={method,headers:h}; if(body!==undefined) opts.body=JSON.stringify(body);
-                const r=await fetch(ep,opts); const t=await r.text();
-                let d=null; try{d=t?JSON.parse(t):null;}catch(e){}
-                return{data:d,error:r.ok?null:{message:d?d.message:r.statusText}};
-            },
-            insert(data){return o._go('POST',Array.isArray(data)?data:[data]);},
-            upsert(data){
-                const h2={...H,'Prefer':'resolution=merge-duplicates'};
-                return fetch(url+'/rest/v1/'+table,{method:'POST',headers:h2,body:JSON.stringify(data)})
-                    .then(r=>({data:r.ok, error:r.ok?null:{message:'Upsert Failed'}}));
-            },
-            update(data){return o._go('PATCH',data);},
-            then(resolve){return o._go('GET').then(resolve);}
-        };return o;
-    }
-    return{from:q, channel:()=>({on:()=>({subscribe:()=>({})})})};
+function makeSupabaseClient(url, key) {
+    const H = {'apikey': key, 'Authorization': 'Bearer ' + key, 'Content-Type': 'application/json', 'Prefer': 'return=representation'};
+    return {
+        from: (table) => {
+            let _f = [], _s = '*', _sing = false;
+            const o = {
+                select(s) { _s = s || '*'; return o; },
+                single() { _sing = true; return o; },
+                eq(c, v) { _f.push(c + '=eq.' + encodeURIComponent(v)); return o; },
+                order(c, op = {}) { return o; },
+                limit(n) { return o; },
+                async _go(method, body) {
+                    let ep = url + '/rest/v1/' + table;
+                    let ps = ['select=' + encodeURIComponent(_s)];
+                    _f.forEach(f => ps.push(f));
+                    ep += '?' + ps.join('&');
+                    const h = {...H};
+                    if (_sing) h.Accept = 'application/vnd.pgrst.object+json';
+                    const opts = {method, headers: h};
+                    if (body !== undefined) opts.body = JSON.stringify(body);
+                    const r = await fetch(ep, opts);
+                    const t = await r.text();
+                    let d = null; try { d = t ? JSON.parse(t) : null; } catch(e) {}
+                    return {data: d, error: r.ok ? null : {message: d ? d.message : r.statusText}};
+                },
+                insert(data) { return o._go('POST', data); },
+                upsert(data) {
+                    const h2 = {...H, 'Prefer': 'resolution=merge-duplicates'};
+                    return fetch(url + '/rest/v1/' + table, {method: 'POST', headers: h2, body: JSON.stringify(data)})
+                        .then(r => ({data: r.ok, error: r.ok ? null : {message: 'Failed'}}));
+                },
+                update(data) { return o._go('PATCH', data); },
+                then(res) { return o._go('GET').then(res); }
+            };
+            return o;
+        },
+        channel: () => ({ on: () => ({ subscribe: () => ({}) }) })
+    };
 }
 
-// ============ THE FIX: GUARANTEED SPINNER CLOSURE ============
+// ============ LOADING HELPERS ============
+function showLoading(msg) {
+    document.getElementById('loading-screen').style.display = 'flex';
+    document.getElementById('loading-msg').textContent = msg;
+}
+function hideLoading() {
+    document.getElementById('loading-screen').style.display = 'none';
+}
+function toast(m, type='') {
+    const t = document.getElementById('toast');
+    t.textContent = m;
+    t.style.background = type === 'err' ? '#b91c1c' : '#0f3d22';
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ============ PROFILE LOGIC (FIXED) ============
 async function saveProfile() {
     showLoading('Saving Profile...');
-    
-    // 1. Sync UI to Local Object
     const fields = ['biz','tagline','type','year','addr','phone','phone2','email','fb','web','reg','tin','dti','permit','prefix','drno','footer','disclaimer'];
     fields.forEach(f => {
         const el = document.getElementById('p-' + f);
@@ -65,35 +99,39 @@ async function saveProfile() {
     profile.initials = (document.getElementById('p-initials')?.value || 'HP').toUpperCase();
 
     try {
-        // 2. Batch Upsert - ONE request for everything
         const now = new Date().toISOString();
         const rows = Object.entries(profile).map(([k, v]) => ({
             key: k, value: String(v), updated_at: now
         }));
-
         const { error } = await db.from('config').upsert(rows);
         if (error) throw error;
 
-        // 3. Update Local UI immediately
         document.getElementById('sb-biz').textContent = profile.biz;
-        document.getElementById('sb-logo-area').innerHTML = logoHTML(34, '7px', 12);
-        
         rProfile();
         toast('✅ Profile Saved');
-        cm('mo-profile');
+        document.getElementById('mo-profile').classList.remove('open');
     } catch (err) {
-        console.error('Save failed:', err);
-        toast('❌ Error: ' + err.message, 'err');
+        toast('❌ Error saving profile', 'err');
     } finally {
-        // THIS IS THE CRITICAL FIX: Hide loading no matter what happens
-        hideLoading();
+        hideLoading(); // THE FIX: Always hide
     }
 }
 
-// ============ POS CHECKOUT ============
+function rProfile() {
+    const p = profile;
+    const set = (id, v) => { const el = document.getElementById(id); if(el) el.textContent = v || '—'; };
+    set('pf-biz', p.biz); set('pf-addr', p.addr); set('pf-phone', p.phone); set('pf-drno', p.drno);
+    document.getElementById('profile-logo-display').innerHTML = logoHTML(96, '16px', 32);
+}
+
+function logoHTML(size, br, fs) {
+    return `<div style="width:${size}px;height:${size}px;border-radius:${br};background:${profile.logoColor};display:flex;align-items:center;justify-content:center;font-size:${fs}px;font-weight:700;color:#fff;">${profile.initials}</div>`;
+}
+
+// ============ POS CHECKOUT (FIXED) ============
 async function checkout() {
     if (!cart.length) { toast('Cart is empty'); return; }
-    showLoading('Processing Sale...');
+    showLoading('Processing Transaction...');
 
     const sub = cart.reduce((s, c) => s + c.price * c.qty, 0);
     const disc = parseFloat(document.getElementById('c-disc').value) || 0;
@@ -107,7 +145,7 @@ async function checkout() {
         customer: 'Walk-in',
         total: total,
         payment_method: selPM,
-        detail: cart,
+        detail: cart.map(c => ({...c})),
         cash_received: cash,
         cash_change: change,
         created_at: new Date().toISOString()
@@ -120,47 +158,40 @@ async function checkout() {
         profile.drno++;
         await db.from('config').upsert([{key:'drno', value:String(profile.drno)}]);
         
-        txns.push({...txnData, id: Date.now()}); // Temp ID for list
+        txns.push({...txnData, id: Date.now()});
         clrcart();
         toast('✅ Sale Recorded');
     } catch (err) {
         toast('❌ Transaction Error', 'err');
     } finally {
-        hideLoading();
+        hideLoading(); // THE FIX: Always hide
     }
 }
 
-// ============ UI HELPERS ============
-function showLoading(msg){
-    const el = document.getElementById('loading-screen');
-    const txt = document.getElementById('loading-msg');
-    if(el) el.style.display='flex';
-    if(txt) txt.textContent=msg;
-}
-function hideLoading(){
-    const el = document.getElementById('loading-screen');
-    if(el) el.style.display='none';
-}
-function toast(m,type=''){
-    const t=document.getElementById('toast');
-    if(!t) return;
-    t.textContent=m;
-    t.style.background=type==='err'?'#b91c1c':'#0f3d22';
-    t.classList.add('show');
-    setTimeout(()=>t.classList.remove('show'),3000);
-}
-function cm(id){ document.getElementById(id).classList.remove('open'); }
-function rProfile(){
-    const p = profile;
-    const set=(id,v)=>{ const el=document.getElementById(id); if(el) el.textContent=v||'—'; };
-    set('pf-biz',p.biz); set('pf-addr',p.addr); set('pf-phone',p.phone); set('pf-drno',p.drno);
-    document.getElementById('profile-logo-display').innerHTML = logoHTML(96, '16px', 32);
-}
-function logoHTML(size, br, fs){
-    return `<div style="width:${size}px;height:${size}px;border-radius:${br};background:${profile.logoColor};display:flex;align-items:center;justify-content:center;font-size:${fs}px;font-weight:700;color:#fff;">${profile.initials}</div>`;
+function clrcart() { cart = []; rcart(); }
+function rcart() {
+    const sub = cart.reduce((s,c) => s + c.price * c.qty, 0);
+    const disc = parseFloat(document.getElementById('c-disc').value) || 0;
+    const tot = Math.max(0, sub-disc);
+    document.getElementById('c-sub').textContent = '₱' + sub.toFixed(2);
+    document.getElementById('c-tot').textContent = '₱' + tot.toFixed(2);
 }
 
-// ============ INITIALIZATION ============
+// ============ APP NAVIGATION & INIT ============
+function sp(n) {
+    document.querySelectorAll('.pg').forEach(p => p.classList.remove('active'));
+    document.getElementById('pg-' + n).classList.add('active');
+    if(n === 'profile') rProfile();
+}
+
+function selectRole(r) {
+    curUser = {name: r, role: r};
+    document.getElementById('screen-login').style.display = 'none';
+    document.getElementById('screen-app').style.display = 'flex';
+    document.getElementById('sb-biz').textContent = profile.biz;
+    document.getElementById('sb-logo-area').innerHTML = logoHTML(34, '7px', 12);
+}
+
 async function loadAllData() {
     showLoading('Loading HardwarePro...');
     try {
@@ -168,33 +199,20 @@ async function loadAllData() {
         if (cfg) {
             cfg.forEach(row => { if(profile.hasOwnProperty(row.key)) profile[row.key] = row.value; });
         }
-        
-        const { data: pData } = await db.from('products').select('*');
-        if (pData) prods = pRes.data;
-
         rProfile();
-        document.getElementById('screen-login').style.display='flex';
+        document.getElementById('screen-login').style.display = 'flex';
         document.getElementById('login-logo-area').innerHTML = `${logoHTML(72, '14px', 22)}<div class="login-biz">${profile.biz}</div>`;
     } catch (e) {
-        console.error(e);
+        toast('Connection Error', 'err');
     } finally {
         hideLoading();
     }
 }
 
-function selectRole(r){
-    curUser = {name:r, role:r};
-    document.getElementById('screen-login').style.display='none';
-    document.getElementById('screen-app').style.display='flex';
-    document.getElementById('sb-biz').textContent = profile.biz;
-    document.getElementById('sb-logo-area').innerHTML = logoHTML(34, '7px', 12);
-}
-
-function sp(n){
-    document.querySelectorAll('.pg').forEach(p=>p.classList.remove('active'));
-    document.getElementById('pg-'+n).classList.add('active');
-    if(n==='profile') rProfile();
-}
-
+// Start
 initSupabase();
 loadAllData();
+
+</script>
+</body>
+</html>
