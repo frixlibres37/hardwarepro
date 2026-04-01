@@ -1577,136 +1577,145 @@ function clrcart(){cart=[];document.getElementById('c-disc').value=0;rcart();}
 async function checkout(){
   if(!cart.length){toast('Cart is empty');return;}
 
-  // ── SNAPSHOT: freeze all sale data BEFORE any await or state change ──
-  const saleTS     = Date.now();
-  const cartSnap   = cart.map(c=>({...c}));           // deep-copy, immune to cart.clear()
-  const disc       = parseFloat(document.getElementById('c-disc').value)||0;
-  const sub        = cartSnap.reduce((s,c)=>s+c.price*c.qty,0);
-  const total      = Math.max(0,sub-disc);
-  const pmMethod   = selPM;
-  const rtype      = receiptType||'DR';
-  const drno       = getDRno();
-  const custId     = document.getElementById('cart-cust').value;
-  const cust       = custId ? custs.find(c=>c.id==custId) : null;
-  const ref        = document.getElementById('pm-ref')?.value||'';
-  const addr       = document.getElementById('cart-addr')?.value||'';
-  const note       = document.getElementById('cart-note')?.value||'';
-  const customerName = cust ? cust.first+' '+cust.last : 'Walk-in';
+  // ── Show the loading screen so the user knows it's working ──
+  showLoading('Processing Sale...');
 
-  // Task 4 — cash received / change (only for cash payments)
-  const cashReceived = pmMethod==='cash'
-    ? (parseFloat(document.getElementById('cash-received')?.value)||0) : 0;
-  const cashChange   = pmMethod==='cash' ? Math.max(0,cashReceived-total) : 0;
+  try {
+      // ── SNAPSHOT: freeze all sale data BEFORE any await or state change ──
+      const saleTS     = Date.now();
+      const cartSnap   = cart.map(c=>({...c}));           // deep-copy, immune to cart.clear()
+      const disc       = parseFloat(document.getElementById('c-disc').value)||0;
+      const sub        = cartSnap.reduce((s,c)=>s+c.price*c.qty,0);
+      const total      = Math.max(0,sub-disc);
+      const pmMethod   = selPM;
+      const rtype      = receiptType||'DR';
+      const drno       = getDRno();
+      const custId     = document.getElementById('cart-cust').value;
+      const cust       = custId ? custs.find(c=>c.id==custId) : null;
+      const ref        = document.getElementById('pm-ref')?.value||'';
+      const addr       = document.getElementById('cart-addr')?.value||'';
+      const note       = document.getElementById('cart-note')?.value||'';
+      const customerName = cust ? cust.first+' '+cust.last : 'Walk-in';
 
-  // ── Stock deduction ───────────────────────────────────────
-  for(const ci of cartSnap){
-    const p=prods.find(x=>x.id===ci.id);
-    if(p){
-      p.stock=Math.max(0,p.stock-ci.qty);
-      queueOrRun({type:'update',table:'products',id:p.id,
-        data:{stock:p.stock,updated_at:new Date().toISOString()}});
-    }
-  }
-  if(cust){
-    cust.totalSpent=(cust.totalSpent||0)+total;
-    cust.txns=(cust.txns||0)+1;
-    queueOrRun({type:'update',table:'customers',id:cust.id,
-      data:{total_spent:cust.totalSpent,txn_count:cust.txns}});
-  }
+      // Task 4 — cash received / change (only for cash payments)
+      const cashReceived = pmMethod==='cash'
+        ? (parseFloat(document.getElementById('cash-received')?.value)||0) : 0;
+      const cashChange   = pmMethod==='cash' ? Math.max(0,cashReceived-total) : 0;
 
-  // ── Build DB payload (snapshot-based, never references live cart) ─
-  const txnData={
-    drno, customer:customerName, cust_id:cust?cust.id:null,
-    cust_addr:cust?cust.addr:addr, cust_phone:cust?cust.phone:'',
-    delivery_addr:addr, note,
-    items_count:cartSnap.reduce((s,c)=>s+c.qty,0),
-    subtotal:sub, discount:disc, total,
-    payment_method:pmMethod, ref_no:ref,
-    shift_id:curShift?curShift.id:null,
-    staff_id:curUser?curUser.id:null,
-    staff_name:curUser?curUser.name:'',
-    status:'active', edit_log:[], return_log:[],
-    detail:cartSnap,          // ← snapshot, not live cart
-    receipt_type:rtype,
-    cash_received:cashReceived,   // Task 4
-    cash_change:cashChange        // Task 4
-  };
-
-  // ── Local txn mirrors snapshot exactly ───────────────────
-  const localTxn={
-    id:saleTS,                // temp; replaced by real DB id below
-    drno, customer:customerName,
-    custAddr:cust?cust.addr:addr, custPhone:cust?cust.phone:'',
-    addr, note,
-    items:cartSnap.reduce((s,c)=>s+c.qty,0),
-    total, discount:disc, pm:pmMethod, ref,
-    ts:saleTS,
-    shiftId:curShift?curShift.id:null,
-    staffId:curUser?.id, staffName:curUser?.name||'',
-    status:'active', editLog:[], returnLog:[],
-    detail:cartSnap,          // ← same snapshot
-    receiptType:rtype,
-    cashReceived, cashChange  // Task 4
-  };
-
-  // ── Persist ──────────────────────────────────────────────
-  if(isOnline){
-    try{
-      const {data:ins,error}=await db.from('transactions')
-        .insert(txnData).select().single();
-
-      if(error){
-        const emsg=error.message||'';
-        if(emsg.includes('receipt_type')||emsg.includes('cash_received')
-           ||emsg.includes('cash_change')){
-          // Column missing — retry without new columns
-          const safe={...txnData};
-          delete safe.receipt_type; delete safe.cash_received; delete safe.cash_change;
-          const {data:ins2,error:e2}=await db.from('transactions')
-            .insert(safe).select().single();
-          if(e2&&!e2.message.includes('409')){toast('❌ '+e2.message,'err');return;}
-          if(ins2) localTxn.id=ins2.id;  // ← real DB id
-        } else if(emsg.includes('409')||emsg.includes('conflict')
-                  ||emsg.includes('duplicate')){
-          const {data:ex}=await db.from('transactions').select('id').eq('drno',drno);
-          if(ex&&ex.length) localTxn.id=ex[0].id;
-        } else {
-          toast('❌ Error: '+emsg,'err'); return;
+      // ── Stock deduction ───────────────────────────────────────
+      for(const ci of cartSnap){
+        const p=prods.find(x=>x.id===ci.id);
+        if(p){
+          p.stock=Math.max(0,p.stock-ci.qty);
+          queueOrRun({type:'update',table:'products',id:p.id,
+            data:{stock:p.stock,updated_at:new Date().toISOString()}});
         }
-      } else if(ins){
-        localTxn.id=ins.id;   // ← strictly bound to this DB row
       }
-    }catch(e){ toast('❌ '+e.message,'err'); return; }
-  } else {
-    queueOrRun({type:'insert',table:'transactions',data:txnData});
-    toast('💾 Saved offline — syncs when connected');
+      if(cust){
+        cust.totalSpent=(cust.totalSpent||0)+total;
+        cust.txns=(cust.txns||0)+1;
+        queueOrRun({type:'update',table:'customers',id:cust.id,
+          data:{total_spent:cust.totalSpent,txn_count:cust.txns}});
+      }
+
+      // ── Build DB payload (snapshot-based, never references live cart) ─
+      const txnData={
+        drno, customer:customerName, cust_id:cust?cust.id:null,
+        cust_addr:cust?cust.addr:addr, cust_phone:cust?cust.phone:'',
+        delivery_addr:addr, note,
+        items_count:cartSnap.reduce((s,c)=>s+c.qty,0),
+        subtotal:sub, discount:disc, total,
+        payment_method:pmMethod, ref_no:ref,
+        shift_id:curShift?curShift.id:null,
+        staff_id:curUser?curUser.id:null,
+        staff_name:curUser?curUser.name:'',
+        status:'active', edit_log:[], return_log:[],
+        detail:cartSnap,          // ← snapshot, not live cart
+        receipt_type:rtype,
+        cash_received:cashReceived,   // Task 4
+        cash_change:cashChange        // Task 4
+      };
+
+      // ── Local txn mirrors snapshot exactly ───────────────────
+      const localTxn={
+        id:saleTS,                // temp; replaced by real DB id below
+        drno, customer:customerName,
+        custAddr:cust?cust.addr:addr, custPhone:cust?cust.phone:'',
+        addr, note,
+        items:cartSnap.reduce((s,c)=>s+c.qty,0),
+        total, discount:disc, pm:pmMethod, ref,
+        ts:saleTS,
+        shiftId:curShift?curShift.id:null,
+        staffId:curUser?.id, staffName:curUser?.name||'',
+        status:'active', editLog:[], returnLog:[],
+        detail:cartSnap,          // ← same snapshot
+        receiptType:rtype,
+        cashReceived, cashChange  // Task 4
+      };
+
+      // ── Persist ──────────────────────────────────────────────
+      if(isOnline){
+          const {data:ins,error}=await db.from('transactions')
+            .insert(txnData).select().single();
+
+          if(error){
+            const emsg=error.message||'';
+            if(emsg.includes('receipt_type')||emsg.includes('cash_received')
+               ||emsg.includes('cash_change')){
+              // Column missing — retry without new columns
+              const safe={...txnData};
+              delete safe.receipt_type; delete safe.cash_received; delete safe.cash_change;
+              const {data:ins2,error:e2}=await db.from('transactions')
+                .insert(safe).select().single();
+              if(e2&&!e2.message.includes('409')){toast('❌ '+e2.message,'err');return;}
+              if(ins2) localTxn.id=ins2.id;  // ← real DB id
+            } else if(emsg.includes('409')||emsg.includes('conflict')
+                      ||emsg.includes('duplicate')){
+              const {data:ex}=await db.from('transactions').select('id').eq('drno',drno);
+              if(ex&&ex.length) localTxn.id=ex[0].id;
+            } else {
+              toast('❌ Error: '+emsg,'err'); return;
+            }
+          } else if(ins){
+            localTxn.id=ins.id;   // ← strictly bound to this DB row
+          }
+      } else {
+        queueOrRun({type:'insert',table:'transactions',data:txnData});
+        toast('💾 Saved offline — syncs when connected');
+      }
+
+      // ── Increment DR counter ─────────────────────────────────
+      profile.drno++;
+      queueOrRun({type:'upsert',table:'config',
+        data:{key:'drno',value:String(profile.drno),updated_at:new Date().toISOString()}});
+
+      txns.push(localTxn);
+      if(curShift) curShift.txns.push(localTxn.id);
+      toast('✓ '+rtype+' '+drno+' issued!');
+
+      // ── Clear cart and all form fields ───────────────────────
+      clrcart();
+      ['pm-ref','cart-addr','cart-note','cash-received'].forEach(id=>{
+        const el=document.getElementById(id); if(el) el.value='';
+      });
+      const chgEl=document.getElementById('c-change');
+      if(chgEl){ chgEl.textContent='—'; chgEl.style.color='#6b7280'; }
+
+      // ── Refresh product grid (updated stock) ─────────────────
+      try{ fprod(document.getElementById('pos-si')?.value||''); }catch(e){}
+      saveLocalCache();
+
+      // ── Show receipt using snapshot-based localTxn (no stale state) ─
+      viewDR(localTxn.id);
+
+  } catch(e) { 
+      // If anything crashes, catch it here
+      toast('❌ '+e.message,'err'); 
+  } finally {
+      // ── THIS IS THE FIX: No matter what, hide the spinner! ──
+      hideLoading();
   }
-
-  // ── Increment DR counter ─────────────────────────────────
-  profile.drno++;
-  queueOrRun({type:'upsert',table:'config',
-    data:{key:'drno',value:String(profile.drno),updated_at:new Date().toISOString()}});
-
-  txns.push(localTxn);
-  if(curShift) curShift.txns.push(localTxn.id);
-  toast('✓ '+rtype+' '+drno+' issued!');
-
-  // ── Clear cart and all form fields ───────────────────────
-  clrcart();
-  ['pm-ref','cart-addr','cart-note','cash-received'].forEach(id=>{
-    const el=document.getElementById(id); if(el) el.value='';
-  });
-  const chgEl=document.getElementById('c-change');
-  if(chgEl){ chgEl.textContent='—'; chgEl.style.color='#6b7280'; }
-
-  // ── Refresh product grid (updated stock) ─────────────────
-  try{ fprod(document.getElementById('pos-si')?.value||''); }catch(e){}
-  saveLocalCache();
-
-  // ── Show receipt using snapshot-based localTxn (no stale state) ─
-  viewDR(localTxn.id);
 }
-
 // ============ DR VIEW & MANAGEMENT ============
 function drStatusBadge(t){
   if(t.status==='voided') return '<span class="bdg bg-r">VOID</span>';
@@ -2548,74 +2557,75 @@ function updateLogoPreview(){
   document.getElementById('logo-prev-name').textContent=name;
 }
 async function saveProfile(){
-  const p=profile;
-  // ── Capture all form values into profile before any async work ──
-  p.biz       = document.getElementById('p-biz').value.trim()||p.biz;
-  p.tagline   = document.getElementById('p-tagline').value;
-  p.type      = document.getElementById('p-type').value;
-  p.year      = document.getElementById('p-year').value;
-  p.initials  = document.getElementById('p-initials').value.toUpperCase()||
-                p.biz.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-  p.addr      = document.getElementById('p-addr').value;
-  p.phone     = document.getElementById('p-phone').value;
-  p.phone2    = document.getElementById('p-phone2').value;
-  p.email     = document.getElementById('p-email').value;
-  p.fb        = document.getElementById('p-fb').value;
-  p.web       = document.getElementById('p-web').value;
-  p.reg       = document.getElementById('p-reg').value;
-  p.tin       = document.getElementById('p-tin').value;
-  p.dti       = document.getElementById('p-dti').value;
-  p.permit    = document.getElementById('p-permit').value;
-  p.prefix    = document.getElementById('p-prefix').value||p.prefix;
-  p.drno      = parseInt(document.getElementById('p-drno').value)||p.drno;
-  p.footer    = document.getElementById('p-footer').value;
-  p.disclaimer= document.getElementById('p-disclaimer').value;
+    const p = profile;
+    p.biz = document.getElementById('p-biz').value.trim() || p.biz;
+    p.tagline = document.getElementById('p-tagline').value;
+    p.type = document.getElementById('p-type').value;
+    p.year = document.getElementById('p-year').value;
+    p.initials = document.getElementById('p-initials').value.toUpperCase() || p.biz.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    p.addr = document.getElementById('p-addr').value;
+    p.phone = document.getElementById('p-phone').value;
+    p.phone2 = document.getElementById('p-phone2').value;
+    p.email = document.getElementById('p-email').value;
+    p.fb = document.getElementById('p-fb').value;
+    p.web = document.getElementById('p-web').value;
+    p.reg = document.getElementById('p-reg').value;
+    p.tin = document.getElementById('p-tin').value;
+    p.dti = document.getElementById('p-dti').value;
+    p.permit = document.getElementById('p-permit').value;
+    p.prefix = document.getElementById('p-prefix').value || p.prefix;
+    p.drno = parseInt(document.getElementById('p-drno').value) || p.drno;
+    p.footer = document.getElementById('p-footer').value;
+    p.disclaimer = document.getElementById('p-disclaimer').value;
 
-  showLoading('Saving profile...');
-  try {
-    // ── ONE batch upsert — all 22 keys in a single request ───────
-    const now = new Date().toISOString();
-    const rows = [
-      {key:'biz',       value:p.biz||'',            updated_at:now},
-      {key:'tagline',   value:p.tagline||'',         updated_at:now},
-      {key:'type',      value:p.type||'',            updated_at:now},
-      {key:'year',      value:p.year||'',            updated_at:now},
-      {key:'addr',      value:p.addr||'',            updated_at:now},
-      {key:'phone',     value:p.phone||'',           updated_at:now},
-      {key:'phone2',    value:p.phone2||'',          updated_at:now},
-      {key:'email',     value:p.email||'',           updated_at:now},
-      {key:'fb',        value:p.fb||'',              updated_at:now},
-      {key:'web',       value:p.web||'',             updated_at:now},
-      {key:'reg',       value:p.reg||'',             updated_at:now},
-      {key:'tin',       value:p.tin||'',             updated_at:now},
-      {key:'dti',       value:p.dti||'',             updated_at:now},
-      {key:'permit',    value:p.permit||'',          updated_at:now},
-      {key:'prefix',    value:p.prefix||'DR',        updated_at:now},
-      {key:'drno',      value:String(p.drno||1001),  updated_at:now},
-      {key:'footer',    value:p.footer||'',          updated_at:now},
-      {key:'disclaimer',value:p.disclaimer||'',      updated_at:now},
-      {key:'logo_type', value:p.logoType||'initials',updated_at:now},
-      {key:'logo_data', value:(p.logoData||'').slice(0,500000), updated_at:now},
-      {key:'initials',  value:p.initials||'HP',      updated_at:now},
-      {key:'logo_color',value:p.logoColor||'#1a6b3c',updated_at:now},
-    ];
-    const {error} = await db.from('config').upsert(rows, {onConflict:'key'});
-    if(error) throw new Error(error.message);
+    showLoading('Saving profile...');
+    try {
+        const now = new Date().toISOString();
+        const rows = [
+            {key:'biz', value:p.biz, updated_at:now},
+            {key:'tagline', value:p.tagline, updated_at:now},
+            {key:'type', value:p.type, updated_at:now},
+            {key:'year', value:p.year, updated_at:now},
+            {key:'addr', value:p.addr, updated_at:now},
+            {key:'phone', value:p.phone, updated_at:now},
+            {key:'phone2', value:p.phone2, updated_at:now},
+            {key:'email', value:p.email, updated_at:now},
+            {key:'fb', value:p.fb, updated_at:now},
+            {key:'web', value:p.web, updated_at:now},
+            {key:'reg', value:p.reg, updated_at:now},
+            {key:'tin', value:p.tin, updated_at:now},
+            {key:'dti', value:p.dti, updated_at:now},
+            {key:'permit', value:p.permit, updated_at:now},
+            {key:'prefix', value:p.prefix, updated_at:now},
+            {key:'drno', value:String(p.drno), updated_at:now},
+            {key:'footer', value:p.footer, updated_at:now},
+            {key:'disclaimer', value:p.disclaimer, updated_at:now},
+            {key:'logo_type', value:p.logoType, updated_at:now},
+            {key:'logo_data', value:p.logoData, updated_at:now},
+            {key:'initials', value:p.initials, updated_at:now},
+            {key:'logo_color', value:p.logoColor, updated_at:now},
+        ];
+        
+        // This single call prevents the loop trap
+        const {error} = await db.from('config').upsert(rows, {onConflict:'key'});
+        if(error) throw new Error(error.message);
 
-    // ── Update UI immediately from the in-memory profile object ──
-    document.getElementById('sb-logo-area').innerHTML = logoHTML(34,'7px',12);
-    document.getElementById('sb-biz').textContent     = p.biz;
-    saveLocalCache();
-    renderLoginUsers();
-    cm('mo-profile');
-    rProfile();
-    toast('✓ Profile saved!');
-  } catch(err) {
-    console.error('[HP] saveProfile failed:', err);
-    toast('❌ Save failed: '+err.message, 'err');
-  } finally {
-    hideLoading(); // ALWAYS hides spinner — even on error
-  }
+        // Update UI immediately
+        const sbLogo = document.getElementById('sb-logo-area');
+        if(sbLogo) sbLogo.innerHTML = logoHTML(34,'7px',12);
+        
+        const sbBiz = document.getElementById('sb-biz');
+        if(sbBiz) sbBiz.textContent = p.biz;
+        
+        cm('mo-profile'); 
+        rProfile();
+        toast('✓ Profile saved!');
+    } catch(err) {
+        toast('❌ Save failed: ' + err.message, 'err');
+    } finally {
+        // This guarantees the spinner hides
+        hideLoading();
+    }
 }
 function openSettings(){
   document.getElementById('s-biz').value=profile.biz;document.getElementById('s-addr').value=profile.addr;
