@@ -2548,13 +2548,14 @@ function updateLogoPreview(){
   document.getElementById('logo-prev-name').textContent=name;
 }
 async function saveProfile(){
-  const p=profile;
-  // ── Capture all form values into profile before any async work ──
-  p.biz       = document.getElementById('p-biz').value.trim()||p.biz;
+  const p = profile;
+
+  // ── Capture form values ──
+  p.biz       = document.getElementById('p-biz').value.trim() || p.biz;
   p.tagline   = document.getElementById('p-tagline').value;
   p.type      = document.getElementById('p-type').value;
   p.year      = document.getElementById('p-year').value;
-  p.initials  = document.getElementById('p-initials').value.toUpperCase()||
+  p.initials  = document.getElementById('p-initials').value.toUpperCase() ||
                 p.biz.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
   p.addr      = document.getElementById('p-addr').value;
   p.phone     = document.getElementById('p-phone').value;
@@ -2566,55 +2567,80 @@ async function saveProfile(){
   p.tin       = document.getElementById('p-tin').value;
   p.dti       = document.getElementById('p-dti').value;
   p.permit    = document.getElementById('p-permit').value;
-  p.prefix    = document.getElementById('p-prefix').value||p.prefix;
-  p.drno      = parseInt(document.getElementById('p-drno').value)||p.drno;
+  p.prefix    = document.getElementById('p-prefix').value || p.prefix;
+  p.drno      = parseInt(document.getElementById('p-drno').value) || p.drno;
   p.footer    = document.getElementById('p-footer').value;
   p.disclaimer= document.getElementById('p-disclaimer').value;
 
   showLoading('Saving profile...');
-  try {
-    // ── ONE batch upsert — all 22 keys in a single request ───────
-    const now = new Date().toISOString();
-    const rows = [
-      {key:'biz',       value:p.biz||'',            updated_at:now},
-      {key:'tagline',   value:p.tagline||'',         updated_at:now},
-      {key:'type',      value:p.type||'',            updated_at:now},
-      {key:'year',      value:p.year||'',            updated_at:now},
-      {key:'addr',      value:p.addr||'',            updated_at:now},
-      {key:'phone',     value:p.phone||'',           updated_at:now},
-      {key:'phone2',    value:p.phone2||'',          updated_at:now},
-      {key:'email',     value:p.email||'',           updated_at:now},
-      {key:'fb',        value:p.fb||'',              updated_at:now},
-      {key:'web',       value:p.web||'',             updated_at:now},
-      {key:'reg',       value:p.reg||'',             updated_at:now},
-      {key:'tin',       value:p.tin||'',             updated_at:now},
-      {key:'dti',       value:p.dti||'',             updated_at:now},
-      {key:'permit',    value:p.permit||'',          updated_at:now},
-      {key:'prefix',    value:p.prefix||'DR',        updated_at:now},
-      {key:'drno',      value:String(p.drno||1001),  updated_at:now},
-      {key:'footer',    value:p.footer||'',          updated_at:now},
-      {key:'disclaimer',value:p.disclaimer||'',      updated_at:now},
-      {key:'logo_type', value:p.logoType||'initials',updated_at:now},
-      {key:'logo_data', value:(p.logoData||'').slice(0,500000), updated_at:now},
-      {key:'initials',  value:p.initials||'HP',      updated_at:now},
-      {key:'logo_color',value:p.logoColor||'#1a6b3c',updated_at:now},
-    ];
-    const {error} = await db.from('config').upsert(rows, {onConflict:'key'});
-    if(error) throw new Error(error.message);
 
-    // ── Update UI immediately from the in-memory profile object ──
+  try {
+    const now = new Date().toISOString();
+
+    // ✅ REMOVE logo_data from DB (store locally instead)
+    const rows = [
+      {key:'biz', value:p.biz||'', updated_at:now},
+      {key:'tagline', value:p.tagline||'', updated_at:now},
+      {key:'type', value:p.type||'', updated_at:now},
+      {key:'year', value:p.year||'', updated_at:now},
+      {key:'addr', value:p.addr||'', updated_at:now},
+      {key:'phone', value:p.phone||'', updated_at:now},
+      {key:'phone2', value:p.phone2||'', updated_at:now},
+      {key:'email', value:p.email||'', updated_at:now},
+      {key:'fb', value:p.fb||'', updated_at:now},
+      {key:'web', value:p.web||'', updated_at:now},
+      {key:'reg', value:p.reg||'', updated_at:now},
+      {key:'tin', value:p.tin||'', updated_at:now},
+      {key:'dti', value:p.dti||'', updated_at:now},
+      {key:'permit', value:p.permit||'', updated_at:now},
+      {key:'prefix', value:p.prefix||'DR', updated_at:now},
+      {key:'drno', value:String(p.drno||1001), updated_at:now},
+      {key:'footer', value:p.footer||'', updated_at:now},
+      {key:'disclaimer', value:p.disclaimer||'', updated_at:now},
+      {key:'logo_type', value:p.logoType||'initials', updated_at:now},
+      {key:'initials', value:p.initials||'HP', updated_at:now},
+      {key:'logo_color', value:p.logoColor||'#1a6b3c', updated_at:now},
+    ];
+
+    // ✅ OFFLINE FALLBACK
+    if (!navigator.onLine) {
+      saveLocalCache();
+      localStorage.setItem('logo_data', p.logoData || '');
+      toast('📡 Saved offline');
+      return;
+    }
+
+    // ✅ TIMEOUT PROTECTION
+    const upsertPromise = db.from('config').upsert(rows, { onConflict:'key' });
+
+    const { error } = await Promise.race([
+      upsertPromise,
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("Request timeout")), 5000)
+      )
+    ]);
+
+    if (error) throw error;
+
+    // ✅ Save logo locally only (prevents DB bloat)
+    localStorage.setItem('logo_data', p.logoData || '');
+
+    // ✅ UI Updates
     document.getElementById('sb-logo-area').innerHTML = logoHTML(34,'7px',12);
-    document.getElementById('sb-biz').textContent     = p.biz;
+    document.getElementById('sb-biz').textContent = p.biz;
+
     saveLocalCache();
     renderLoginUsers();
     cm('mo-profile');
     rProfile();
+
     toast('✓ Profile saved!');
+
   } catch(err) {
     console.error('[HP] saveProfile failed:', err);
-    toast('❌ Save failed: '+err.message, 'err');
+    toast('❌ Save failed: ' + err.message, 'err');
   } finally {
-    hideLoading(); // ALWAYS hides spinner — even on error
+    hideLoading(); // 💯 ALWAYS runs
   }
 }
 function openSettings(){
