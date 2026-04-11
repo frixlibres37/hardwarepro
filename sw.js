@@ -11,8 +11,14 @@ self.addEventListener('install', event => {
   // Skip waiting = activate immediately without waiting for tabs to close
   self.skipWaiting();
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => cache.add(INDEX_URL).catch(() => {}))
+    caches.open(CACHE_NAME).then(cache =>
+      Promise.allSettled([
+        cache.add(INDEX_URL),
+        cache.add(BASE_PATH + '/manifest.json'),
+        cache.add(BASE_PATH + '/icon-192.png'),
+        cache.add(BASE_PATH + '/icon-512.png'),
+      ])
+    )
   );
 });
 
