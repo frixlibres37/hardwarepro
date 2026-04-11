@@ -3,10 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="build-id" content="v110846-14bf8e3f">
-<link rel="manifest" href="/hardwarepro/manifest.json">
+<link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#1a6b3c">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="apple-touch-icon" href="icon-192.png">
 <meta name="apple-mobile-web-app-title" content="HardwarePro">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>HardwarePro — Internal System</title>
@@ -179,96 +180,7 @@ tr:hover td{background:#f9fafb;}
 .dr-table td{padding:5px 7px;border:.5px solid #ddd;font-size:11px;}
 .dr-sigs{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:14px;}
 .dr-sig-line{border-bottom:1px solid #999;margin-bottom:4px;height:24px;}
-@media print{body *{visibility:hidden;}.dr-pa,.dr-pa *{visibility:visible;}.dr-pa{position:fixed;left:0;top:0;width:100%;background:#fff;}.no-print{display:none!important;}}
-/* ===== MOBILE POS MODE ===== */
-.mobile-menu-btn,.mobile-cart-fab,.mobile-cart-handle,.mobile-sidebar-backdrop,.mobile-cart-backdrop{display:none;}
-.mobile-menu-btn{border:1px solid var(--bdr);background:#fff;color:#111827;border-radius:8px;cursor:pointer;align-items:center;justify-content:center;font-size:18px;font-weight:700;flex-shrink:0;}
-.mobile-sidebar-backdrop,.mobile-cart-backdrop{position:fixed;inset:0;background:rgba(17,24,39,.35);backdrop-filter:blur(2px);z-index:110;}
-.mobile-cart-fab{position:fixed;right:12px;bottom:12px;z-index:100;border:none;border-radius:999px;background:var(--g);color:#fff;padding:12px 16px;box-shadow:0 12px 30px rgba(0,0,0,.22);cursor:pointer;align-items:center;gap:10px;font-weight:700;}
-.mobile-cart-fab.hidden{display:none!important;}
-.mobile-cart-fab small{display:block;font-size:10px;font-weight:500;opacity:.85;line-height:1.1;}
-.mobile-cart-fab strong{display:block;font-size:12px;line-height:1.2;}
-.mobile-cart-fab .count{min-width:24px;height:24px;border-radius:999px;background:#fff;color:var(--g);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;padding:0 6px;}
-.mobile-cart-handle{width:100%;align-items:center;justify-content:space-between;gap:10px;border:none;background:#f9fafb;border-top:1px solid var(--bdr);border-bottom:1px solid var(--bdr);padding:9px 11px;cursor:pointer;}
-.mobile-cart-grip{width:40px;height:4px;border-radius:999px;background:#cbd5e1;display:block;flex-shrink:0;}
-.mobile-cart-meta{display:flex;align-items:center;justify-content:space-between;gap:12px;flex:1;min-width:0;}
-.mobile-cart-meta-text{min-width:0;}
-.mobile-cart-meta-label{font-size:10px;color:#6b7280;text-transform:uppercase;letter-spacing:.08em;font-weight:700;}
-.mobile-cart-meta-sub{font-size:11px;color:#374151;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.mobile-cart-meta-total{font-size:14px;font-weight:800;color:var(--g);white-space:nowrap;}
-.mobile-cart-open .mobile-cart-fab{display:none!important;}
-
-@media (max-width: 900px){
-  body.mobile-mode{overflow-x:hidden;}
-  body.mobile-mode .app{display:block;height:auto;min-height:100vh;}
-  body.mobile-mode .sb{
-    position:fixed;left:0;top:0;bottom:0;z-index:120;width:280px;max-width:82vw;
-    transform:translateX(-100%);transition:transform .22s ease;box-shadow:0 20px 50px rgba(0,0,0,.28);
-  }
-  body.mobile-mode .sb.open{transform:translateX(0);}
-  body.mobile-mode .mobile-sidebar-backdrop.open,
-  body.mobile-mode .mobile-cart-backdrop.open{display:block;}
-  body.mobile-mode .main{width:100%;min-height:100vh;}
-  body.mobile-mode .topbar{
-    position:sticky;top:0;z-index:30;height:auto;min-height:56px;padding:8px 10px;gap:8px;
-  }
-  body.mobile-mode .mobile-menu-btn{display:flex;width:40px;height:40px;}
-  body.mobile-mode .pgt{font-size:16px;line-height:1.2;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  body.mobile-mode .topbar > div:last-child{gap:6px;flex-wrap:nowrap;}
-  body.mobile-mode #shift-info-bar{display:none;}
-  body.mobile-mode .content{padding:10px;}
-  body.mobile-mode .r4,
-  body.mobile-mode .r3,
-  body.mobile-mode .r2,
-  body.mobile-mode .fg,
-  body.mobile-mode .fg3{grid-template-columns:1fr;}
-  body.mobile-mode .profile-header{flex-direction:column;align-items:flex-start;padding:18px;}
-  body.mobile-mode .profile-field{flex-direction:column;gap:4px;}
-  body.mobile-mode .pf-value{text-align:left;}
-  body.mobile-mode .modal-ov{padding:10px;}
-  body.mobile-mode .modal,
-  body.mobile-mode .modal-wide{width:100%;max-width:100%;margin:0;border-radius:12px;padding:16px;}
-  body.mobile-mode .login-box,
-  body.mobile-mode .shift-box{width:min(100%,420px);padding:20px;}
-  body.mobile-mode .btn,
-  body.mobile-mode .print-btn,
-  body.mobile-mode .pm-btn,
-  body.mobile-mode .sel-inp,
-  body.mobile-mode .srch,
-  body.mobile-mode .fi{min-height:42px;}
-  body.mobile-mode .pos-wrap{grid-template-columns:1fr;height:auto;gap:10px;padding-bottom:96px;}
-  body.mobile-mode #pg-pos .pos-wrap > div:first-child{overflow:visible;}
-  body.mobile-mode #pg-pos .pos-wrap > div:first-child > div:first-child{
-    position:sticky;top:56px;z-index:20;background:#f9fafb;padding-bottom:8px;
-  }
-  body.mobile-mode .pg-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;}
-  body.mobile-mode .pc{padding:12px;min-height:116px;}
-  body.mobile-mode .cart-panel{
-    position:fixed;left:0;right:0;bottom:0;top:auto;z-index:130;height:min(78vh,620px);
-    border-radius:18px 18px 0 0;border-left:none;border-right:none;border-bottom:none;
-    transform:translateY(calc(100% - 126px));transition:transform .22s ease;
-    max-width:none;box-shadow:0 -10px 32px rgba(0,0,0,.16);
-  }
-  body.mobile-mode .cart-panel.mobile-open{transform:translateY(0);}
-  body.mobile-mode .mobile-cart-handle{display:flex;}
-  body.mobile-mode #pg-pos .cart-panel:not(.mobile-open) > :not(:first-child):not(.mobile-cart-handle){display:none;}
-  body.mobile-mode #pg-pos .cart-panel:not(.mobile-open) .mobile-cart-handle{border-bottom:none;}
-  body.mobile-mode .mobile-cart-fab{display:flex;}
-  body.mobile-mode #cart-list{padding-bottom:8px;}
-  body.mobile-mode .cart-ft{padding:10px 11px calc(12px + env(safe-area-inset-bottom,0px));background:#fff;}
-  body.mobile-mode .dr-preview-header,
-  body.mobile-mode .dr-hd{flex-direction:column;gap:10px;align-items:flex-start;}
-}
-@media (max-width: 600px){
-  body.mobile-mode .topbar .btn.btn-p.btn-sm{padding:9px 12px;font-size:12px;}
-  body.mobile-mode .content{padding:9px;}
-  body.mobile-mode .card{padding:10px;}
-  body.mobile-mode .pg-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
-  body.mobile-mode .pc{min-height:108px;}
-}
-@media (max-width: 390px){
-  body.mobile-mode .pg-grid{grid-template-columns:1fr;}
-}
+@media print{body *{visibility:hidden;}.dr-pa,.dr-pa *{visibility:visible;}.dr-pa{position:fixed;left:0;top:0;width:100%;background:#fff;}.no-print{display:none!important;}
 </style>
 </head>
 <body>
@@ -362,7 +274,6 @@ tr:hover td{background:#f9fafb;}
     <div class="pgt" id="pgt">Dashboard</div>
     <div style="display:flex;align-items:center;gap:8px;">
       <span style="font-size:11px;color:#6b7280;" id="shift-info-bar"></span>
-      <span id="sync-chip" style="display:none;font-size:11px;font-weight:600;padding:4px 8px;border-radius:999px;background:#ecfccb;color:#3f6212;">Sync ready</span>
       <span id="role-badge"></span>
       <button class="btn btn-p btn-sm" onclick="sp('pos')">+ New Sale</button>
     </div>
@@ -664,8 +575,8 @@ tr:hover td{background:#f9fafb;}
     </div>
     <!-- Big print button + actions -->
     <div style="display:flex;gap:8px;">
-      <button onclick="printCurrentSalePOS()" style="flex:2;padding:12px;background:#1a6b3c;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
-        🖨️ PRINT POS RECEIPT
+      <button onclick="window.print()" style="flex:2;padding:12px;background:#1a6b3c;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
+        🖨️ PRINT DR
       </button>
       <div id="dr-action-btns" style="flex:1;display:flex;flex-direction:column;gap:5px;"></div>
     </div>
@@ -1014,19 +925,6 @@ tr:hover td{background:#f9fafb;}
   <div class="fl"><label>Phone</label><input class="fi" id="s-phone"></div>
   <div class="fg"><div class="fl"><label>DR Prefix</label><input class="fi" id="s-prefix"></div><div class="fl"><label>DR Starting No.</label><input class="fi" id="s-drno" type="number"></div></div>
   <div class="fl"><label>DR Footer</label><input class="fi" id="s-footer"></div>
-  <div id="backup-tools" style="display:none;margin-top:10px;padding-top:12px;border-top:1px solid var(--bdr);">
-    <div style="font-size:12px;font-weight:700;color:#111827;margin-bottom:4px;">🛟 Offline Sync & Daily Backup</div>
-    <div id="backup-status" style="font-size:11px;color:#6b7280;margin-bottom:8px;">Checking backup status...</div>
-    <div style="display:flex;gap:6px;flex-wrap:wrap;">
-      <button class="btn btn-sm" type="button" onclick="retryPendingSync()">🔄 Retry Sync</button>
-      <button class="btn btn-sm" type="button" onclick="runManualBackup()">💾 Create Backup</button>
-      <button class="btn btn-sm" type="button" onclick="exportLatestBackup()">⬇ Export JSON</button>
-      <button class="btn btn-sm" type="button" onclick="restoreLatestLocalBackup()">⏪ Restore Latest Local</button>
-      <button class="btn btn-sm" type="button" onclick="triggerBackupRestore()">♻ Restore Backup</button>
-      <input type="file" id="backup-restore-file" accept="application/json,.json" style="display:none;" onchange="handleBackupRestoreFile(event)">
-    </div>
-    <div style="font-size:10px;color:#6b7280;margin-top:8px;line-height:1.45;">Restore uses a JSON backup export. The app will create a safety snapshot first, then replace local cached business data and refresh the UI.</div>
-  </div>
   <div class="ma"><button class="btn" onclick="cm('mo-settings')">Cancel</button><button class="btn btn-p" onclick="saveSettings()">Save</button></div>
 </div></div>
 
@@ -1101,14 +999,6 @@ const COLORS= ['#1a6b3c','#1e40af','#7c3aed','#b91c1c','#b45309','#0e7490','#374
 let db = null;
 let isOnline = navigator.onLine;
 let offlineQueue = [];
-let syncInProgress = false;
-let lastSyncRun = 0;
-const OFFLINE_SYNC_STATES = {PENDING:'pending_sync',SYNCED:'synced',FAILED:'sync_failed'};
-const BACKUP_LS_KEY = 'hp_daily_backups';
-const ENABLE_REMOTE_BACKUPS = false;
-const ENABLE_TRANSACTION_LOCALID_UPSERT = false;
-const BACKUP_LAST_KEY = 'hp_last_backup_day';
-const LAST_RESTORE_KEY = 'hp_last_restore_info';
 let loginRole = '', staffLoginName = '';
 let receiptType = 'DR';
 let editSelProd = null;
@@ -1206,248 +1096,79 @@ function makeSupabaseClient(url,key){
 // ============ OFFLINE / ONLINE ============
 window.addEventListener('online', updateOnlineStatus);
 window.addEventListener('offline', updateOnlineStatus);
-function genLocalId(prefix='hp'){
-  return prefix+'_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8);
-}
-function isRetryableSyncError(msg=''){
-  return /Failed to fetch|NetworkError|network|timeout|offline|load failed|fetch/i.test(String(msg||''));
-}
-function isMissingSchemaError(msg=''){
-  return /Could not find the .* column|column .* does not exist|relation .* does not exist|schema cache|404|backups/i.test(String(msg||''));
-}
-function stripLegacyTxnFields(data, msg=''){
-  const safe={...(data||{})};
-  const m=String(msg||'').toLowerCase();
-  if(!m || /local_id|sync_status|sync_error|synced_at|schema cache/.test(m)){
-    delete safe.local_id; delete safe.sync_status; delete safe.sync_error; delete safe.synced_at;
-  }
-  if(!m || /receipt_type/.test(m)) delete safe.receipt_type;
-  if(!m || /cash_received/.test(m)) delete safe.cash_received;
-  if(!m || /cash_change/.test(m)) delete safe.cash_change;
-  return safe;
-}
-async function insertTransactionRobust(txnData, preferUpsert=false){
-  let lastError=null;
-  if(preferUpsert && txnData?.local_id){
-    const up = await db.from('transactions').upsert(txnData,{onConflict:'local_id'}).select().single();
-    if(!up?.error) return up;
-    lastError = up.error;
-    if(!isMissingSchemaError(up.error.message||'')) return up;
-  }
-  let safe={...(txnData||{})};
-  for(let i=0;i<4;i++){
-    const res = await db.from('transactions').insert(safe).select().single();
-    if(!res?.error) return res;
-    lastError = res.error;
-    const next = stripLegacyTxnFields(safe, res.error.message||'');
-    if(JSON.stringify(next)===JSON.stringify(safe)) return res;
-    safe = next;
-  }
-  return {data:null,error:lastError||{message:'Transaction insert failed'}};
-}
-function normalizeQueueOp(op){
-  return {
-    opId: op.opId || genLocalId('op'),
-    createdAt: op.createdAt || new Date().toISOString(),
-    retries: Number(op.retries||0),
-    status: op.status || 'pending',
-    ...op
-  };
-}
-function upsertQueuedOp(op){
-  op = normalizeQueueOp(op);
-  if(op.type==='insert' && op.table==='transactions'){
-    const localId = op.data?.local_id || op.data?.localId;
-    const drno = op.data?.drno;
-    const idx = offlineQueue.findIndex(x => x.type==='insert' && x.table==='transactions' && ((localId && (x.data?.local_id===localId || x.data?.localId===localId)) || (drno && x.data?.drno===drno)));
-    if(idx>=0) offlineQueue[idx] = op; else offlineQueue.push(op);
-  }else if(op.type==='update' && op.id!=null){
-    const idx = offlineQueue.findIndex(x => x.type==='update' && x.table===op.table && String(x.id)===String(op.id));
-    if(idx>=0) offlineQueue[idx] = {...offlineQueue[idx], data:{...(offlineQueue[idx].data||{}), ...(op.data||{})}, createdAt:offlineQueue[idx].createdAt};
-    else offlineQueue.push(op);
-  }else if(op.type==='upsert' && op.table==='config' && op.data?.key){
-    const idx = offlineQueue.findIndex(x => x.type==='upsert' && x.table==='config' && x.data?.key===op.data.key);
-    if(idx>=0) offlineQueue[idx] = op; else offlineQueue.push(op);
-  }else{
-    offlineQueue.push(op);
-  }
-  saveOfflineQueue();
-  updateSyncIndicator();
-  return op;
-}
-function markTxnSyncState(localId, state, syncError='', realId=null){
-  if(!localId) return;
-  const t = txns.find(x => x.localId===localId || x.local_id===localId || (realId!=null && String(x.id)===String(realId)));
-  if(t){
-    t.syncStatus = state;
-    t.syncError = syncError || '';
-    if(realId!=null) t.id = realId;
-    if(state===OFFLINE_SYNC_STATES.SYNCED) t.syncedAt = Date.now();
-  }
-  updateSyncIndicator();
-  saveLocalCache();
-  ensureDailyBackup();
-}
-function updateSyncIndicator(){
-  const el = document.getElementById('sync-chip');
-  if(!el) return;
-  const pending = offlineQueue.filter(x=>x.status!=='done').length;
-  const failed = offlineQueue.filter(x=>x.status==='failed').length;
-  el.style.display = '';
-  if(!isOnline){
-    el.textContent = 'Offline · '+pending+' pending';
-    el.style.background = '#fef3c7';
-    el.style.color = '#92400e';
-  }else if(failed){
-    el.textContent = failed+' sync failed';
-    el.style.background = '#fee2e2';
-    el.style.color = '#991b1b';
-  }else if(pending){
-    el.textContent = pending+' pending sync';
-    el.style.background = '#dbeafe';
-    el.style.color = '#1d4ed8';
-  }else{
-    el.textContent = 'Synced';
-    el.style.background = '#dcfce7';
-    el.style.color = '#166534';
-  }
-}
 function updateOnlineStatus(){
   isOnline=navigator.onLine;
   let b=document.getElementById('offline-banner');
   if(!b){b=document.createElement('div');b.id='offline-banner';b.style.cssText='display:none;position:fixed;top:0;left:0;right:0;z-index:10000;background:#f59e0b;color:#78350f;padding:8px 16px;font-size:12px;font-weight:600;text-align:center;';b.innerHTML='⚡ Offline — changes save locally and sync when reconnected';document.body.prepend(b);}
   b.style.display=isOnline?'none':'block';
-  updateSyncIndicator();
   if(isOnline&&offlineQueue.length>0){
     syncOfflineQueue();
   } else if(isOnline) {
+    // Resync DR counter even if no queue
     resyncDRCounter();
   }
 }
-function saveOfflineQueue(){
-  try{localStorage.setItem('hp_oq',JSON.stringify(offlineQueue));}
-  catch(e){console.warn('[HP] Failed to save offline queue:',e);}
-}
+function saveOfflineQueue(){try{localStorage.setItem('hp_oq',JSON.stringify(offlineQueue));}catch(e){}}
 function loadOfflineQueue(){
   try{
     const q=localStorage.getItem('hp_oq');
-    offlineQueue=[];
     if(q){
-      const raw=JSON.parse(q);
-      const seenTxn=new Set();
-      (Array.isArray(raw)?raw:[]).forEach(item=>{
-        const op=normalizeQueueOp(item);
-        if(op.type==='insert'&&op.table==='transactions'){
-          const k=op.data?.local_id||op.data?.drno||op.opId;
-          if(seenTxn.has(k)) return;
-          seenTxn.add(k);
+      offlineQueue=JSON.parse(q);
+      // Remove duplicate transaction inserts (same drno)
+      const seen=new Set();
+      offlineQueue=offlineQueue.filter(op=>{
+        if(op.type==='insert'&&op.table==='transactions'&&op.data&&op.data.drno){
+          if(seen.has(op.data.drno)){console.log('[HP] Removed dup queue item:',op.data.drno);return false;}
+          seen.add(op.data.drno);
         }
-        offlineQueue.push(op);
+        return true;
       });
       if(offlineQueue.length)console.log('[HP] Loaded offline queue:',offlineQueue.length,'items');
     }
   }catch(e){offlineQueue=[];}
-  updateSyncIndicator();
 }
-async function runQueuedOp(op){
-  if(op.type==='insert'){
-    if(op.table==='transactions'){
-      return await insertTransactionRobust(op.data, ENABLE_TRANSACTION_LOCALID_UPSERT && !!op.data?.local_id);
-    }
-    return await db.from(op.table).insert(op.data);
-  }
-  if(op.type==='update')return await db.from(op.table).update(op.data).eq('id',op.id);
-  if(op.type==='upsert')return await db.from(op.table).upsert(op.data, op.table==='config' ? {onConflict:'key'} : {});
-  if(op.type==='delete')return await db.from(op.table).delete().eq('id',op.id);
-  return {data:null,error:{message:'Unknown offline op type'}};
-}
-async function syncOfflineQueue(force=false){
-  if(syncInProgress || !db || (!isOnline && !force) || !offlineQueue.length) return;
-  syncInProgress = true;
-  lastSyncRun = Date.now();
-  updateSyncIndicator();
-  const queue=[...offlineQueue].sort((a,b)=>new Date(a.createdAt)-new Date(b.createdAt));
-  const keep=[];
-  let synced=0, failed=0, skipped=0;
-  for(const baseOp of queue){
-    const op = normalizeQueueOp(baseOp);
+async function syncOfflineQueue(){
+  if(!isOnline||!offlineQueue.length)return;
+  const q=[...offlineQueue];offlineQueue=[];saveOfflineQueue();
+  let synced=0,skipped=0,failed=0;
+  for(const op of q){
     try{
-      const result = await runQueuedOp(op);
-      const msg = result?.error?.message || '';
-      if(result?.error){
-        if(/409|conflict|duplicate/i.test(msg)){
-          skipped++;
-          if(op.table==='transactions'){
-            const localId = op.data?.local_id;
-            let realId = null;
-            try{
-              const {data:ex} = await db.from('transactions').select('id,local_id,drno').eq('drno',op.data?.drno);
-              if(ex && ex.length) realId = ex[0].id;
-            }catch(e){}
-            markTxnSyncState(localId, OFFLINE_SYNC_STATES.SYNCED, '', realId);
-          }
-          continue;
-        }
-        if(isRetryableSyncError(msg)){
-          op.retries = Number(op.retries||0)+1;
-          op.status = op.retries>=5 ? 'failed' : 'pending';
-          keep.push(op);
-          failed++;
-          if(op.table==='transactions') markTxnSyncState(op.data?.local_id, op.status==='failed'?OFFLINE_SYNC_STATES.FAILED:OFFLINE_SYNC_STATES.PENDING, msg);
-        }else{
-          console.warn('[HP] Non-retryable sync error:', msg);
-          failed++;
-          if(op.table==='transactions') markTxnSyncState(op.data?.local_id, OFFLINE_SYNC_STATES.FAILED, msg);
-        }
-      }else{
-        synced++;
-        if(op.table==='transactions'){
-          let row = result?.data;
-          if(Array.isArray(row)) row=row[0];
-          markTxnSyncState(op.data?.local_id, OFFLINE_SYNC_STATES.SYNCED, '', row?.id || null);
-          if(row?.id){
-            const txn = txns.find(x=>x.localId===op.data?.local_id || x.drno===op.data?.drno);
-            if(txn) txn.id = row.id;
-          }
+      let result;
+      if(op.type==='insert'){
+        result=await db.from(op.table).insert(op.data);
+        // 409 = already exists (duplicate), skip safely
+        if(result.error&&(result.error.message.includes('409')||result.error.message.includes('conflict')||result.error.message.includes('duplicate'))){
+          console.log('[HP] Sync skip duplicate:',op.table,op.data.drno||op.data.id||'');
+          skipped++;continue;
         }
       }
-    }catch(e){
-      const msg = e?.message || 'Sync failed';
-      op.retries = Number(op.retries||0)+1;
-      op.status = op.retries>=5 ? 'failed' : 'pending';
-      keep.push(op);
-      failed++;
-      console.warn('[HP] Sync error:',e);
-      if(op.table==='transactions') markTxnSyncState(op.data?.local_id, op.status==='failed'?OFFLINE_SYNC_STATES.FAILED:OFFLINE_SYNC_STATES.PENDING, msg);
-    }
+      else if(op.type==='update')result=await db.from(op.table).update(op.data).eq('id',op.id);
+      else if(op.type==='upsert')result=await db.from(op.table).upsert(op.data);
+      else if(op.type==='delete')result=await db.from(op.table).delete().eq('id',op.id);
+      if(result&&result.error&&!result.error.message.includes('409')){
+        console.warn('[HP] Sync failed:',result.error.message);
+        failed++;
+      } else { synced++; }
+    }catch(e){console.warn('[HP] Sync error:',e);failed++;}
   }
-  offlineQueue = keep;
-  saveOfflineQueue();
-  updateSyncIndicator();
-  syncInProgress = false;
-  if(isOnline) resyncDRCounter();
-  if(synced>0) toast('✅ Synced '+synced+' item(s)'+(skipped?' · '+skipped+' already existed':''));
-  else if(failed>0 && !keep.length) toast('✅ Pending queue cleared');
-  else if(failed>0) toast('⚠️ Some items still waiting to sync');
-}
-function retryPendingSync(){
-  offlineQueue = offlineQueue.map(op => ({...normalizeQueueOp(op), status:'pending'}));
-  saveOfflineQueue();
-  updateSyncIndicator();
-  if(isOnline) syncOfflineQueue(true);
-  else toast('Offline mode — retry when internet is back');
+  // Resync DR counter from DB after sync
+  resyncDRCounter();
+  if(synced>0)toast('✅ Synced '+synced+' item(s) to database'+(skipped?' ('+skipped+' skipped)':''));
+  else if(skipped>0)toast('✅ Queue cleared ('+skipped+' already synced)');
 }
 async function resyncDRCounter(){
+  // Fetch the highest DR number from DB and update local counter
   try{
     const {data}=await db.from('transactions').select('drno').order('id',{ascending:false}).limit(1);
     if(data&&data.length){
       const lastDR=data[0].drno;
-      const num=parseInt(String(lastDR||'').split('-').pop());
+      const num=parseInt(lastDR.split('-').pop());
       if(!isNaN(num)&&num>=profile.drno){
         profile.drno=num+1;
         console.log('[HP] DR counter resynced to:',profile.drno);
       }
     }
+    // Also fetch from config
     const {data:cfg}=await db.from('config').select('value').eq('key','drno');
     if(cfg&&cfg.length){
       const cfgDrno=parseInt(cfg[0].value)||0;
@@ -1456,35 +1177,12 @@ async function resyncDRCounter(){
   }catch(e){console.warn('[HP] resyncDRCounter failed:',e);}
 }
 function queueOrRun(op){
-  const qop = normalizeQueueOp(op);
-  const queueOnly = ()=>({data:null,error:null,queued:true});
-  if(!isOnline){
-    upsertQueuedOp(qop);
-    return Promise.resolve(queueOnly());
-  }
-  let runner;
-  if(qop.type==='insert') runner = qop.table==='transactions'
-    ? insertTransactionRobust(qop.data, ENABLE_TRANSACTION_LOCALID_UPSERT && !!qop.data?.local_id)
-    : db.from(qop.table).insert(qop.data).select().single();
-  else if(qop.type==='update') runner = db.from(qop.table).update(qop.data).eq('id',qop.id);
-  else if(qop.type==='upsert') runner = db.from(qop.table).upsert(qop.data, qop.table==='config' ? {onConflict:'key'} : {});
-  else if(qop.type==='delete') runner = db.from(qop.table).delete().eq('id',qop.id);
-  else return Promise.resolve({data:null,error:{message:'Unknown op'}});
-  return Promise.resolve(runner).then(res=>{
-    if(res?.error && isRetryableSyncError(res.error.message||'')){
-      upsertQueuedOp(qop);
-      if(qop.table==='transactions') markTxnSyncState(qop.data?.local_id, OFFLINE_SYNC_STATES.PENDING, res.error.message||'');
-      return queueOnly();
-    }
-    return res;
-  }).catch(err=>{
-    if(isRetryableSyncError(err?.message||'')){
-      upsertQueuedOp(qop);
-      if(qop.table==='transactions') markTxnSyncState(qop.data?.local_id, OFFLINE_SYNC_STATES.PENDING, err.message||'');
-      return queueOnly();
-    }
-    throw err;
-  });
+  if(isOnline){
+    if(op.type==='insert')return db.from(op.table).insert(op.data).select().single();
+    if(op.type==='update')return db.from(op.table).update(op.data).eq('id',op.id);
+    if(op.type==='upsert')return db.from(op.table).upsert(op.data);
+    if(op.type==='delete')return db.from(op.table).delete().eq('id',op.id);
+  }else{offlineQueue.push(op);saveOfflineQueue();return Promise.resolve({data:null,error:null});}
 }
 
 // ============ HELPERS ============
@@ -1507,271 +1205,6 @@ function isAdmin(){return curUser&&curUser.role==='admin';}
 function getDRno(){return profile.prefix+'-'+profile.drno;}
 function td(){return new Date().toISOString().split('T')[0];}
 function fmt(n){return '₱'+(+n).toLocaleString('en-PH',{minimumFractionDigits:2,maximumFractionDigits:2});}
-function dayKey(ts=Date.now()){const d=new Date(ts);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
-function buildBackupPayload(){
-  return {
-    meta:{
-      app:'HardwarePro',
-      created_at:new Date().toISOString(),
-      created_by:curUser?.name||'System',
-      queue_pending:offlineQueue.length,
-      build_id:BUILD_ID,
-      online:isOnline
-    },
-    profile,
-    users,
-    products:prods,
-    customers:custs,
-    suppliers,
-    purchases,
-    transactions:txns,
-    expenses,
-    shifts,
-    returns,
-    edit_requests:editRequests
-  };
-}
-function loadStoredBackups(){
-  try{return JSON.parse(localStorage.getItem(BACKUP_LS_KEY)||'[]')||[];}catch(e){return [];}
-}
-function saveStoredBackups(list){
-  const trimmed=(Array.isArray(list)?list:[]).slice(-3);
-  try{localStorage.setItem(BACKUP_LS_KEY, JSON.stringify(trimmed)); return true;}
-  catch(e){
-    console.warn('[HP] Backup local save failed:',e);
-    try{localStorage.setItem(BACKUP_LS_KEY, JSON.stringify(trimmed.map(x=>({id:x.id,day:x.day,reason:x.reason,created_at:x.created_at,summary:x.summary,localPayloadDropped:true}))));}catch(_e){}
-    return false;
-  }
-}
-async function createBackupRecord(reason='manual'){
-  const payload=buildBackupPayload();
-  const createdAt=new Date().toISOString();
-  const record={
-    id:genLocalId('bkp'),
-    day:dayKey(),
-    reason,
-    created_at:createdAt,
-    summary:{products:prods.length,customers:custs.length,transactions:txns.length,expenses:expenses.length,queue:offlineQueue.length},
-    payload
-  };
-  const backups=loadStoredBackups();
-  backups.push(record);
-  saveStoredBackups(backups);
-  localStorage.setItem(BACKUP_LAST_KEY, record.day);
-  if(db && isOnline && window.__hpRemoteBackupsDisabled!==true){
-    const backupData={
-      backup_key: reason==='daily-auto' ? ('daily_'+record.day) : record.id,
-      backup_date: record.day,
-      backup_type: reason,
-      created_by: curUser?.name || 'System',
-      payload
-    };
-    queueOrRun({type:'insert',table:'backups',data:backupData}).then(res=>{
-      const msg = res?.error?.message || '';
-      if(res?.error && /404|relation .*backups.* does not exist|failed to load resource|backups/i.test(msg)){
-        window.__hpRemoteBackupsDisabled = true;
-        console.warn('[HP] Remote backups table not available. Using local backups only.');
-      }
-    }).catch(()=>{
-      window.__hpRemoteBackupsDisabled = true;
-    });
-  }
-  renderBackupStatus();
-  return record;
-}
-async function ensureDailyBackup(force=false){
-  const today=dayKey();
-  const last=localStorage.getItem(BACKUP_LAST_KEY)||'';
-  if(!force && last===today) return null;
-  return await createBackupRecord(force?'manual':'daily-auto');
-}
-function downloadJSON(filename, obj){
-  const blob=new Blob([JSON.stringify(obj,null,2)],{type:'application/json'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a'); a.href=url; a.download=filename; document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(()=>URL.revokeObjectURL(url), 500);
-}
-
-function normalizeBackupPayload(raw){
-  const data = raw && raw.payload && typeof raw.payload==='object' ? raw.payload : raw;
-  if(!data || typeof data!=='object') throw new Error('Backup file is empty or invalid.');
-  const normalized = {
-    profile: data.profile && typeof data.profile==='object' ? data.profile : null,
-    users: Array.isArray(data.users) ? data.users : [],
-    products: Array.isArray(data.products) ? data.products : [],
-    customers: Array.isArray(data.customers) ? data.customers : [],
-    suppliers: Array.isArray(data.suppliers) ? data.suppliers : [],
-    purchases: Array.isArray(data.purchases) ? data.purchases : [],
-    transactions: Array.isArray(data.transactions) ? data.transactions : [],
-    expenses: Array.isArray(data.expenses) ? data.expenses : [],
-    shifts: Array.isArray(data.shifts) ? data.shifts : [],
-    returns: Array.isArray(data.returns) ? data.returns : [],
-    edit_requests: Array.isArray(data.edit_requests) ? data.edit_requests : []
-  };
-  if(!normalized.profile && !normalized.products.length && !normalized.transactions.length && !normalized.customers.length){
-    throw new Error('Backup file does not contain recognizable HardwarePro data.');
-  }
-  return normalized;
-}
-function backupSummaryText(payload){
-  return [
-    payload.products.length+' products',
-    payload.customers.length+' customers',
-    payload.transactions.length+' transactions',
-    payload.expenses.length+' expenses',
-    payload.shifts.length+' shifts'
-  ].join(' · ');
-}
-function applyBackupPayload(payload, meta={}){
-  const clean = normalizeBackupPayload(payload);
-  if(clean.profile) Object.assign(profile, clean.profile);
-  users = clean.users.slice();
-  prods = clean.products.slice();
-  custs = clean.customers.slice();
-  suppliers = clean.suppliers.slice();
-  purchases = clean.purchases.slice();
-  txns = clean.transactions.slice();
-  expenses = clean.expenses.slice();
-  shifts = clean.shifts.slice();
-  returns = clean.returns.slice();
-  editRequests = clean.edit_requests.slice();
-
-  nPid = Math.max(1, ...prods.map(x=>Number(x.id)||0)) + 1;
-  nCid = Math.max(1, ...custs.map(x=>Number(x.id)||0)) + 1;
-  nSid = Math.max(1, ...suppliers.map(x=>Number(x.id)||0)) + 1;
-  nPOid = Math.max(1, ...purchases.map(x=>Number(x.id)||0)) + 1;
-  nEid = Math.max(1, ...expenses.map(x=>Number(x.id)||0)) + 1;
-  nUid = Math.max(1, ...users.map(x=>Number(x.id)||0)) + 1;
-  nRetId = Math.max(1, ...returns.map(x=>Number(x.id)||0)) + 1;
-  nReqId = Math.max(1, ...editRequests.map(x=>Number(x.id)||0)) + 1;
-  profile.drno = Number(profile.drno)||1001;
-
-  cart = [];
-  selPM = 'cash';
-  receiptType = 'DR';
-  offlineQueue = [];
-  try{localStorage.removeItem('hp_oq');}catch(e){}
-  localStorage.setItem(LAST_RESTORE_KEY, JSON.stringify({
-    at:new Date().toISOString(),
-    source:meta.source||'json-import',
-    filename:meta.filename||'',
-    summary:{
-      products:prods.length,
-      customers:custs.length,
-      transactions:txns.length,
-      expenses:expenses.length,
-      shifts:shifts.length
-    }
-  }));
-  saveLocalCache();
-  saveAll();
-  rnav();
-  renderBackupStatus();
-  try{
-    if(typeof fprod==='function') fprod(document.getElementById('pos-si')?.value||'');
-    if(typeof rcart==='function') rcart();
-    if(typeof rdash==='function') rdash();
-    if(typeof rinv==='function') rinv();
-    if(typeof rcust==='function') rcust();
-    if(typeof rsup==='function') rsup();
-    if(typeof rpo==='function') rpo();
-    if(typeof rdr==='function') rdr();
-    if(typeof rexp==='function') rexp();
-    if(typeof rrep==='function') rrep();
-    if(typeof rstaff==='function') rstaff();
-    if(typeof renderShiftPage==='function') renderShiftPage();
-    if(typeof renderDeliveryTracker==='function') renderDeliveryTracker();
-    if(typeof renderCreditPage==='function') renderCreditPage();
-    if(typeof renderReturnsPage==='function') renderReturnsPage();
-    if(typeof renderEditRequestsPage==='function') renderEditRequestsPage();
-    if(typeof renderProfilePage==='function') renderProfilePage();
-  }catch(e){ console.warn('[HP] Restore rerender warning:', e); }
-  toast('♻ Backup restored successfully');
-}
-async function restoreLatestLocalBackup(){
-  if(!isAdmin()) return;
-  try{
-    const backups = loadStoredBackups();
-    const latest = backups[backups.length-1];
-    if(!latest || !latest.payload){
-      alert('No local backup found yet. Create a backup first.');
-      return;
-    }
-    const payload = normalizeBackupPayload(latest.payload);
-    const message = `Restore the latest local backup on this device?
-
-Backup date: ${latest.day||'Unknown'}
-Created: ${new Date(latest.created_at).toLocaleString()}
-Data: ${backupSummaryText(payload)}
-
-This will replace current local cached data on this device and clear the current offline sync queue.`;
-    if(!confirm(message)) return;
-    await createBackupRecord('pre-restore-latest-local');
-    applyBackupPayload(payload, {
-      source:'latest-local-backup',
-      filename:'LOCAL::'+(latest.day||dayKey())
-    });
-  }catch(err){
-    console.error('[HP] Latest local restore failed:', err);
-    alert('Latest local restore failed: '+(err?.message||'Unknown error.'));
-  }
-}
-async function triggerBackupRestore(){
-  if(!isAdmin()) return;
-  const input=document.getElementById('backup-restore-file');
-  if(input) { input.value=''; input.click(); }
-}
-async function handleBackupRestoreFile(event){
-  const file = event?.target?.files?.[0];
-  if(!file) return;
-  try{
-    const text = await file.text();
-    const parsed = JSON.parse(text);
-    const payload = normalizeBackupPayload(parsed);
-    const message = 'Restore this backup?\n\nFile: '+file.name+'\nData: '+backupSummaryText(payload)+'\n\nThis will replace current local cached data on this device and clear the current offline sync queue.';
-    if(!confirm(message)) return;
-    await createBackupRecord('pre-restore-safety');
-    applyBackupPayload(payload, {source:'json-import', filename:file.name});
-  }catch(err){
-    console.error('[HP] Restore failed:', err);
-    alert('Restore failed: '+(err?.message||'Invalid backup file.'));
-  }finally{
-    if(event?.target) event.target.value='';
-  }
-}
-async function runManualBackup(){
-  const rec=await createBackupRecord('manual');
-  toast('💾 Backup created · '+rec.day);
-}
-async function exportLatestBackup(){
-  let backups=loadStoredBackups();
-  let latest=backups[backups.length-1];
-  if(!latest || !latest.payload){ latest = await createBackupRecord('manual-export'); }
-  downloadJSON('HardwarePro_Backup_'+(latest.day||dayKey())+'.json', latest.payload||buildBackupPayload());
-  toast('⬇ Backup JSON downloaded');
-}
-function renderBackupStatus(){
-  const wrap=document.getElementById('backup-tools');
-  const status=document.getElementById('backup-status');
-  if(!wrap || !status) return;
-  wrap.style.display=isAdmin()?'':'none';
-  if(!isAdmin()) return;
-  const backups=loadStoredBackups();
-  const latest=backups[backups.length-1];
-  const pending=offlineQueue.filter(x=>x.status!=='done').length;
-  let restoreInfo=null;
-  try{ restoreInfo = JSON.parse(localStorage.getItem(LAST_RESTORE_KEY)||'null'); }catch(e){ restoreInfo=null; }
-  const localRestore = latest
-    ? ('<br><span style="color:#4b5563;">Latest local restore point ready: '+new Date(latest.created_at).toLocaleString()+'</span>')
-    : '';
-  const base = latest
-    ? ('Latest backup: <strong>'+latest.day+'</strong> · '+new Date(latest.created_at).toLocaleString()+' · '+latest.summary.transactions+' txns · '+pending+' pending sync')
-    : ('No backup yet. Create one now. Pending sync: '+pending);
-  const restored = restoreInfo?.at
-    ? ('<br><span style="color:#4b5563;">Last restore: '+new Date(restoreInfo.at).toLocaleString()+(restoreInfo.filename ? ' · '+restoreInfo.filename : '')+'</span>')
-    : '';
-  status.innerHTML = base + localRestore + restored;
-}
 function fmtD(ts){return new Date(ts).toLocaleDateString('en-PH',{month:'short',day:'numeric',year:'numeric'});}
 function fmtDT(ts){return new Date(ts).toLocaleString('en-PH',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});}
 function isToday(ts){return new Date(ts).toDateString()===new Date().toDateString();}
@@ -2351,7 +1784,6 @@ async function checkout(){
   const addr       = document.getElementById('cart-addr')?.value||'';
   const note       = document.getElementById('cart-note')?.value||'';
   const customerName = cust ? cust.first+' '+cust.last : 'Walk-in';
-  const localId      = genLocalId('txn');
 
   // Task 4 — cash received / change (only for cash payments)
   const cashReceived = pmMethod==='cash'
@@ -2388,12 +1820,8 @@ async function checkout(){
     status:'active', edit_log:[], return_log:[],
     detail:cartSnap,          // ← snapshot, not live cart
     receipt_type:rtype,
-    cash_received:cashReceived,
-    cash_change:cashChange,
-    local_id:localId,
-    sync_status: isOnline ? OFFLINE_SYNC_STATES.SYNCED : OFFLINE_SYNC_STATES.PENDING,
-    sync_error: null,
-    synced_at: isOnline ? new Date().toISOString() : null
+    cash_received:cashReceived,   // Task 4
+    cash_change:cashChange        // Task 4
   };
 
   // ── Local txn mirrors snapshot exactly ───────────────────
@@ -2410,34 +1838,39 @@ async function checkout(){
     status:'active', editLog:[], returnLog:[],
     detail:cartSnap,          // ← same snapshot
     receiptType:rtype,
-    cashReceived, cashChange,
-    localId,
-    syncStatus:isOnline?OFFLINE_SYNC_STATES.SYNCED:OFFLINE_SYNC_STATES.PENDING,
-    syncError:''
+    cashReceived, cashChange  // Task 4
   };
 
   // ── Persist ──────────────────────────────────────────────
   if(isOnline){
     try{
-      const {data:ins,error}=await insertTransactionRobust(txnData, ENABLE_TRANSACTION_LOCALID_UPSERT && !!txnData.local_id);
+      const {data:ins,error}=await db.from('transactions')
+        .insert(txnData).select().single();
 
       if(error){
         const emsg=error.message||'';
-        if(emsg.includes('409')||emsg.includes('conflict')
+        if(emsg.includes('receipt_type')||emsg.includes('cash_received')
+           ||emsg.includes('cash_change')){
+          // Column missing — retry without new columns
+          const safe={...txnData};
+          delete safe.receipt_type; delete safe.cash_received; delete safe.cash_change;
+          const {data:ins2,error:e2}=await db.from('transactions')
+            .insert(safe).select().single();
+          if(e2&&!e2.message.includes('409')){toast('❌ '+e2.message,'err');return;}
+          if(ins2) localTxn.id=ins2.id;  // ← real DB id
+        } else if(emsg.includes('409')||emsg.includes('conflict')
                   ||emsg.includes('duplicate')){
           const {data:ex}=await db.from('transactions').select('id').eq('drno',drno);
-          if(ex&&ex.length){ localTxn.id=ex[0].id; localTxn.syncStatus=OFFLINE_SYNC_STATES.SYNCED; }
+          if(ex&&ex.length) localTxn.id=ex[0].id;
         } else {
           toast('❌ Error: '+emsg,'err'); return;
         }
       } else if(ins){
-        localTxn.id=ins.id;
-        localTxn.syncStatus=OFFLINE_SYNC_STATES.SYNCED;
+        localTxn.id=ins.id;   // ← strictly bound to this DB row
       }
     }catch(e){ toast('❌ '+e.message,'err'); return; }
   } else {
     queueOrRun({type:'insert',table:'transactions',data:txnData});
-    localTxn.syncStatus=OFFLINE_SYNC_STATES.PENDING;
     toast('💾 Saved offline — syncs when connected');
   }
 
@@ -2461,7 +1894,6 @@ async function checkout(){
   // ── Refresh product grid (updated stock) ─────────────────
   try{ fprod(document.getElementById('pos-si')?.value||''); }catch(e){}
   saveLocalCache();
-  ensureDailyBackup();
 
   // ── Show receipt using snapshot-based localTxn (no stale state) ─
   viewDR(localTxn.id);
@@ -2469,94 +1901,11 @@ async function checkout(){
 
 // ============ DR VIEW & MANAGEMENT ============
 function drStatusBadge(t){
-  if(t.syncStatus===OFFLINE_SYNC_STATES.PENDING) return '<span class="bdg bg-a">PENDING SYNC</span>';
-  if(t.syncStatus===OFFLINE_SYNC_STATES.FAILED) return '<span class="bdg bg-r">SYNC FAILED</span>';
   if(t.status==='voided') return '<span class="bdg bg-r">VOID</span>';
   if(t.status==='returned') return '<span class="bdg bg-r">RETURNED</span>';
   if(t.status==='partial-return') return '<span class="bdg bg-a">PARTIAL RETURN</span>';
   if(t.editLog&&t.editLog.length) return '<span class="bdg bg-b">EDITED</span>';
   return '<span class="bdg bg-g">Active</span>';
-}
-
-function escHtml(v){
-  return String(v??'').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-}
-function nl2br(v){ return escHtml(v).replace(/\n/g,'<br>'); }
-function buildPOSReceiptHTML(t){
-  const p = profile;
-  const items = (t.detail||[]).map(d=>{
-    const qty = Number(d.qty)||0;
-    const price = Number(d.price)||0;
-    const amount = qty * price;
-    return `
-      <div class="line item-line"><span class="item-name">${escHtml(d.name||'Item')}</span></div>
-      <div class="line sub-line"><span>${escHtml(d.code||'')}</span><span>${qty} x ${fmt(price)}</span></div>
-      <div class="line"><span>${escHtml(d.unit||'')}</span><span>${fmt(amount)}</span></div>`;
-  }).join('');
-  const subtotal = (Number(t.total)||0) + (Number(t.discount)||0);
-  const paymentLabel = PML[t.pm] || t.pm || 'Payment';
-  return `<!DOCTYPE html>
-<html><head><meta charset="UTF-8"><title>${escHtml(t.drno)} - POS Receipt</title>
-<style>
-  @page { size: 80mm auto; margin: 0; }
-  html,body{ margin:0; padding:0; background:#fff; color:#000; font-family:Arial,Helvetica,sans-serif; }
-  body{ width:80mm; }
-  .receipt{ width:72mm; margin:0 auto; padding:3mm 0 4mm; font-size:11px; line-height:1.28; }
-  .center{ text-align:center; }
-  .biz{ font-size:15px; font-weight:700; }
-  .hr{ border-top:1px dashed #000; margin:6px 0; }
-  .line{ display:flex; justify-content:space-between; gap:8px; margin:1px 0; }
-  .item-line{ margin-top:4px; font-weight:700; }
-  .sub-line{ font-size:10px; }
-  .item-name{ padding-right:8px; }
-  .total{ font-size:13px; font-weight:700; }
-  .small{ font-size:10px; }
-  .foot{ margin-top:8px; font-size:10px; text-align:center; }
-  .printbar{ padding:8px; text-align:center; border-bottom:1px solid #ddd; }
-  .printbtn{ padding:8px 14px; border:0; border-radius:6px; background:#111; color:#fff; font-weight:700; cursor:pointer; }
-  @media print{ .printbar{ display:none !important; } body{ width:auto; } .receipt{ width:72mm; } }
-</style></head><body>
-<div class="printbar"><button class="printbtn" onclick="window.print()">Print</button></div>
-<div class="receipt">
-  <div class="center biz">${escHtml(p.biz||'STORE')}</div>
-  ${p.addr?`<div class="center small">${escHtml(p.addr)}</div>`:''}
-  ${p.phone?`<div class="center small">${escHtml(p.phone)}${p.phone2?` / ${escHtml(p.phone2)}`:''}</div>`:''}
-  ${p.tin?`<div class="center small">TIN: ${escHtml(p.tin)}</div>`:''}
-  <div class="hr"></div>
-  <div class="center"><strong>${escHtml(t.receiptType||'DR')}</strong></div>
-  <div class="line"><span>No.</span><span>${escHtml(t.drno||'')}</span></div>
-  <div class="line"><span>Date</span><span>${escHtml(fmtD(t.ts))}</span></div>
-  <div class="line"><span>Cashier</span><span>${escHtml(t.staffName||'')}</span></div>
-  <div class="hr"></div>
-  <div class="small"><strong>Customer:</strong> ${escHtml(t.customer||'Walk-in')}</div>
-  ${t.custPhone?`<div class="small">${escHtml(t.custPhone)}</div>`:''}
-  ${(t.custAddr||t.addr)?`<div class="small">${nl2br(t.custAddr||t.addr)}</div>`:''}
-  ${t.note?`<div class="small"><strong>Note:</strong> ${nl2br(t.note)}</div>`:''}
-  <div class="hr"></div>
-  ${items || '<div class="center small">No items</div>'}
-  <div class="hr"></div>
-  <div class="line"><span>Subtotal</span><span>${fmt(subtotal)}</span></div>
-  ${(Number(t.discount)||0)>0?`<div class="line"><span>Discount</span><span>- ${fmt(Number(t.discount)||0)}</span></div>`:''}
-  <div class="line total"><span>TOTAL</span><span>${fmt(Number(t.total)||0)}</span></div>
-  <div class="hr"></div>
-  <div class="line"><span>Payment</span><span>${escHtml(paymentLabel)}</span></div>
-  ${t.ref?`<div class="line"><span>Reference</span><span>${escHtml(t.ref)}</span></div>`:''}
-  ${(Number(t.cashReceived)||0)>0?`<div class="line"><span>Cash</span><span>${fmt(Number(t.cashReceived)||0)}</span></div>`:''}
-  ${(Number(t.cashReceived)||0)>0?`<div class="line"><span>Change</span><span>${fmt(Number(t.cashChange)||0)}</span></div>`:''}
-  <div class="foot">${escHtml(p.footer||'Thank you!')}</div>
-</div></body></html>`;
-}
-function printCurrentSalePOS(){
-  const drNo = document.getElementById('dr-modal-title')?.textContent?.trim();
-  if(!drNo){ window.print(); return; }
-  const t = txns.find(x => String(x.drno) === String(drNo) || String(x.id) === String(drNo));
-  if(!t){ window.print(); return; }
-  const w = window.open('', '_blank', 'width=420,height=760');
-  if(!w){ toast('Allow pop-ups first so the POS receipt can print'); return; }
-  w.document.open();
-  w.document.write(buildPOSReceiptHTML(t));
-  w.document.close();
-  setTimeout(()=>{ try{ w.focus(); w.print(); }catch(e){} }, 250);
 }
 function viewDR(id){
   const t=txns.find(x=>x.id===id);if(!t)return;
@@ -3556,7 +2905,6 @@ function openSettings(){
   document.getElementById('s-biz').value=profile.biz;document.getElementById('s-addr').value=profile.addr;
   document.getElementById('s-phone').value=profile.phone;document.getElementById('s-prefix').value=profile.prefix;
   document.getElementById('s-drno').value=profile.drno;document.getElementById('s-footer').value=profile.footer;
-  renderBackupStatus();
   document.getElementById('mo-settings').classList.add('open');
 }
 async function saveSettings(){
@@ -3918,7 +3266,7 @@ async function loadAllData(){
 
     showLoading('Loading transactions...');
     const {data:tData} = await db.from('transactions').select('*').order('id');
-    if(tData) txns=tData.map(t=>({id:t.id,drno:t.drno,customer:t.customer||'Walk-in',custAddr:t.cust_addr||'',custPhone:t.cust_phone||'',addr:t.delivery_addr||'',note:t.note||'',items:parseInt(t.items_count)||0,total:parseFloat(t.total)||0,discount:parseFloat(t.discount)||0,pm:t.payment_method||'cash',ref:t.ref_no||'',shiftId:t.shift_id,staffId:t.staff_id,staffName:t.staff_name||'',status:t.status||'active',editLog:t.edit_log||[],returnLog:t.return_log||[],detail:t.detail||[],ts:new Date(t.created_at).getTime(),cashReceived:parseFloat(t.cash_received)||0,cashChange:parseFloat(t.cash_change)||0,localId:t.local_id||'',syncStatus:t.sync_status||OFFLINE_SYNC_STATES.SYNCED,syncError:t.sync_error||'',syncedAt:t.synced_at?new Date(t.synced_at).getTime():null}));
+    if(tData) txns=tData.map(t=>({id:t.id,drno:t.drno,customer:t.customer||'Walk-in',custAddr:t.cust_addr||'',custPhone:t.cust_phone||'',addr:t.delivery_addr||'',note:t.note||'',items:parseInt(t.items_count)||0,total:parseFloat(t.total)||0,discount:parseFloat(t.discount)||0,pm:t.payment_method||'cash',ref:t.ref_no||'',shiftId:t.shift_id,staffId:t.staff_id,staffName:t.staff_name||'',status:t.status||'active',editLog:t.edit_log||[],returnLog:t.return_log||[],detail:t.detail||[],ts:new Date(t.created_at).getTime(),cashReceived:parseFloat(t.cash_received)||0,cashChange:parseFloat(t.cash_change)||0}));
 
     showLoading('Loading expenses...');
     const {data:eData} = await db.from('expenses').select('*').order('id');
@@ -3950,19 +3298,14 @@ async function loadAllData(){
     dbReady=true;
     hideLoading();
     subscribeRealtime();
-    saveLocalCache();
-    ensureDailyBackup();
     document.getElementById('screen-login').style.display='flex';
     renderLoginUsers();
     renderPinDots();
-    updateSyncIndicator();
   } catch(err){
     clearTimeout(loadTimeout);
     hideLoading();
     console.error('[HP] loadAllData CRASHED:', err);
     if(prods.length > 0){
-      ensureDailyBackup();
-      updateSyncIndicator();
       toast('⚠️ DB error — using cached data. POS available offline.','');
     } else {
       toast('⚠️ DB error: '+err.message,'err');
@@ -3980,13 +3323,6 @@ function saveLocalCache(){
     localStorage.setItem('hp_custs', JSON.stringify(custs));
     localStorage.setItem('hp_users', JSON.stringify(users));
     localStorage.setItem('hp_profile', JSON.stringify(profile));
-    localStorage.setItem('hp_txns', JSON.stringify(txns.slice(-1500)));
-    localStorage.setItem('hp_shifts', JSON.stringify(shifts.slice(-400)));
-    localStorage.setItem('hp_expenses', JSON.stringify(expenses.slice(-800)));
-    localStorage.setItem('hp_returns', JSON.stringify(returns.slice(-400)));
-    localStorage.setItem('hp_editreqs', JSON.stringify(editRequests.slice(-400)));
-    localStorage.setItem('hp_suppliers', JSON.stringify(suppliers));
-    localStorage.setItem('hp_purchases', JSON.stringify(purchases.slice(-400)));
     localStorage.setItem('hp_cache_ts', Date.now().toString());
     console.log('[HP] Local cache saved:', prods.length, 'products,', custs.length, 'customers');
   }catch(e){ console.warn('[HP] Cache save failed:', e); }
@@ -3997,25 +3333,11 @@ function loadLocalCache(){
     const cachedCusts = localStorage.getItem('hp_custs');
     const cachedUsers = localStorage.getItem('hp_users');
     const cachedProfile = localStorage.getItem('hp_profile');
-    const cachedTxns = localStorage.getItem('hp_txns');
-    const cachedShifts = localStorage.getItem('hp_shifts');
-    const cachedExpenses = localStorage.getItem('hp_expenses');
-    const cachedReturns = localStorage.getItem('hp_returns');
-    const cachedEditReqs = localStorage.getItem('hp_editreqs');
-    const cachedSuppliers = localStorage.getItem('hp_suppliers');
-    const cachedPurchases = localStorage.getItem('hp_purchases');
     const cacheTs = localStorage.getItem('hp_cache_ts');
     if(cachedProds) prods = JSON.parse(cachedProds);
     if(cachedCusts) custs = JSON.parse(cachedCusts);
     if(cachedUsers) users = JSON.parse(cachedUsers);
     if(cachedProfile){ const p=JSON.parse(cachedProfile); Object.assign(profile, p); }
-    if(cachedTxns) txns = JSON.parse(cachedTxns);
-    if(cachedShifts) shifts = JSON.parse(cachedShifts);
-    if(cachedExpenses) expenses = JSON.parse(cachedExpenses);
-    if(cachedReturns) returns = JSON.parse(cachedReturns);
-    if(cachedEditReqs) editRequests = JSON.parse(cachedEditReqs);
-    if(cachedSuppliers) suppliers = JSON.parse(cachedSuppliers);
-    if(cachedPurchases) purchases = JSON.parse(cachedPurchases);
     const ageHrs = cacheTs ? (Date.now()-parseInt(cacheTs))/3600000 : 999;
     console.log('[HP] Local cache loaded. Age:', Math.round(ageHrs*10)/10, 'hrs');
     return true;
@@ -4265,181 +3587,6 @@ function printDailySales(range){
   setTimeout(()=>w.print(), 500);
 }
 
-
-// ============================================================
-// MOBILE POS MODE (careful additive enhancement)
-// Keeps desktop/tablet layout intact and only enhances small screens.
-const MOBILE_POS_BREAKPOINT = 900;
-
-function isMobilePOSViewport(){
-  return window.innerWidth <= MOBILE_POS_BREAKPOINT;
-}
-function mobilePOSPageActive(){
-  const pg = document.getElementById('pg-pos');
-  return !!(pg && pg.classList.contains('active'));
-}
-function closeMobileSidebar(){
-  document.getElementById('sidebar')?.classList.remove('open');
-  document.getElementById('mobile-sidebar-backdrop')?.classList.remove('open');
-}
-function toggleMobileSidebar(force){
-  if(!isMobilePOSViewport() && window.innerWidth > MOBILE_POS_BREAKPOINT) return;
-  const sb=document.getElementById('sidebar'); if(!sb) return;
-  const willOpen = typeof force==='boolean' ? force : !sb.classList.contains('open');
-  sb.classList.toggle('open', willOpen);
-  document.getElementById('mobile-sidebar-backdrop')?.classList.toggle('open', willOpen);
-}
-function closeMobileCart(){
-  document.querySelector('#pg-pos .cart-panel')?.classList.remove('mobile-open');
-  document.getElementById('mobile-cart-backdrop')?.classList.remove('open');
-  document.body.classList.remove('mobile-cart-open');
-}
-function toggleMobileCart(force){
-  if(!isMobilePOSViewport() || !mobilePOSPageActive()) return;
-  const panel=document.querySelector('#pg-pos .cart-panel'); if(!panel) return;
-  const willOpen = typeof force==='boolean' ? force : !panel.classList.contains('mobile-open');
-  panel.classList.toggle('mobile-open', willOpen);
-  document.getElementById('mobile-cart-backdrop')?.classList.toggle('open', willOpen);
-  document.body.classList.toggle('mobile-cart-open', willOpen);
-  updateMobileCartUI();
-}
-function currentCartCount(){
-  try{ return (cart||[]).reduce((s,c)=>s+(parseFloat(c.qty)||0),0); }catch(e){ return 0; }
-}
-function currentCartTotalText(){
-  return document.getElementById('c-tot')?.textContent || fmt(0);
-}
-function updateMobileCartUI(){
-  const count=currentCartCount();
-  const total=currentCartTotalText();
-  const countText = count===1 ? '1 item' : `${count} items`;
-
-  const sub=document.getElementById('mobile-cart-summary-sub');
-  const tot=document.getElementById('mobile-cart-summary-total');
-  const fabCount=document.getElementById('mobile-cart-fab-count');
-  const fabTotal=document.getElementById('mobile-cart-fab-total');
-  if(sub) sub.textContent = countText + (count ? ' in cart' : 'Tap products to add');
-  if(tot) tot.textContent = total;
-  if(fabCount) fabCount.textContent = count;
-  if(fabTotal) fabTotal.textContent = total;
-
-  const fab=document.getElementById('mobile-cart-fab');
-  if(fab){
-    const shouldShow = isMobilePOSViewport() && mobilePOSPageActive();
-    fab.classList.toggle('hidden', !shouldShow);
-  }
-}
-function applyMobileViewportState(){
-  const mobile=isMobilePOSViewport();
-  document.body.classList.toggle('mobile-mode', mobile);
-  if(!mobile){
-    closeMobileSidebar();
-    closeMobileCart();
-  }else{
-    updateMobileCartUI();
-  }
-}
-function injectMobilePOSUI(){
-  if(!document.getElementById('mobile-sidebar-backdrop')){
-    const sb=document.createElement('div');
-    sb.id='mobile-sidebar-backdrop';
-    sb.className='mobile-sidebar-backdrop';
-    sb.onclick=closeMobileSidebar;
-    document.body.appendChild(sb);
-  }
-  if(!document.getElementById('mobile-cart-backdrop')){
-    const cb=document.createElement('div');
-    cb.id='mobile-cart-backdrop';
-    cb.className='mobile-cart-backdrop';
-    cb.onclick=closeMobileCart;
-    document.body.appendChild(cb);
-  }
-  if(!document.getElementById('mobile-cart-fab')){
-    const fab=document.createElement('button');
-    fab.id='mobile-cart-fab';
-    fab.className='mobile-cart-fab hidden';
-    fab.type='button';
-    fab.innerHTML=`<div><small>Cart Total</small><strong id="mobile-cart-fab-total">${fmt(0)}</strong></div><span class="count" id="mobile-cart-fab-count">0</span>`;
-    fab.onclick=()=>toggleMobileCart(true);
-    document.body.appendChild(fab);
-  }
-  const topbar=document.querySelector('.topbar');
-  if(topbar && !document.getElementById('mobile-menu-btn')){
-    const btn=document.createElement('button');
-    btn.id='mobile-menu-btn';
-    btn.className='mobile-menu-btn';
-    btn.type='button';
-    btn.setAttribute('aria-label','Open menu');
-    btn.innerHTML='☰';
-    btn.onclick=()=>toggleMobileSidebar();
-    topbar.insertBefore(btn, topbar.firstChild);
-  }
-  const cartPanel=document.querySelector('#pg-pos .cart-panel');
-  if(cartPanel && !document.getElementById('mobile-cart-handle')){
-    const handle=document.createElement('button');
-    handle.id='mobile-cart-handle';
-    handle.className='mobile-cart-handle';
-    handle.type='button';
-    handle.innerHTML=`
-      <span class="mobile-cart-grip"></span>
-      <div class="mobile-cart-meta">
-        <div class="mobile-cart-meta-text">
-          <div class="mobile-cart-meta-label">Quick Cart</div>
-          <div class="mobile-cart-meta-sub" id="mobile-cart-summary-sub">Tap products to add</div>
-        </div>
-        <div class="mobile-cart-meta-total" id="mobile-cart-summary-total">${fmt(0)}</div>
-      </div>`;
-    handle.onclick=()=>toggleMobileCart();
-    cartPanel.insertBefore(handle, cartPanel.children[1] || null);
-  }
-
-  document.querySelectorAll('#nav-items .ni').forEach(el=>{
-    if(el.dataset.mobileBound==='1') return;
-    el.dataset.mobileBound='1';
-    el.addEventListener('click', ()=>closeMobileSidebar());
-  });
-
-  updateMobileCartUI();
-  applyMobileViewportState();
-}
-
-const __spOriginal = sp;
-sp = function(name){
-  closeMobileSidebar();
-  if(name!=='pos') closeMobileCart();
-  const result = __spOriginal(name);
-  setTimeout(()=>{
-    injectMobilePOSUI();
-    updateMobileCartUI();
-    if(name!=='pos') closeMobileCart();
-  },0);
-  return result;
-};
-
-const __rcartOriginal = rcart;
-rcart = function(){
-  const result = __rcartOriginal.apply(this, arguments);
-  updateMobileCartUI();
-  return result;
-};
-
-const __rPOSOriginal = rPOS;
-rPOS = function(){
-  const result = __rPOSOriginal.apply(this, arguments);
-  injectMobilePOSUI();
-  updateMobileCartUI();
-  return result;
-};
-
-window.addEventListener('resize', applyMobileViewportState);
-window.addEventListener('orientationchange', ()=>{
-  setTimeout(applyMobileViewportState, 120);
-});
-
-document.addEventListener('visibilitychange', function(){ if(document.visibilityState==='hidden') saveLocalCache(); });
-window.addEventListener('beforeunload', function(){ saveLocalCache(); });
-setInterval(function(){ if(isOnline && offlineQueue.length) syncOfflineQueue(); }, 30000);
-
 // ============================================================
 (function() {
   // ── NUCLEAR SW CLEANUP: unregister ALL old SWs immediately ──
@@ -4486,8 +3633,6 @@ setInterval(function(){ if(isOnline && offlineQueue.length) syncOfflineQueue(); 
 
   loadOfflineQueue();
   updateOnlineStatus();
-  injectMobilePOSUI();
-  applyMobileViewportState();
   loadAllData();
 })();
 
