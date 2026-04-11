@@ -1,21 +1,31 @@
 {
-  "name": "HardwarePro — Internal System",
+  "name": "HardwarePro \u2014 Internal System",
   "short_name": "HardwarePro",
   "description": "Hardware store business management system",
   "start_url": "/hardwarepro/",
   "scope": "/hardwarepro/",
   "display": "standalone",
-  "background_color": "#0f3d22",
+  "background_color": "#1a6b3c",
   "theme_color": "#1a6b3c",
   "orientation": "any",
   "prefer_related_applications": false,
   "icons": [
     {
-      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='80' fill='%231a6b3c'/><text y='380' font-size='320' x='50%' text-anchor='middle'>🔧</text></svg>",
-      "sizes": "512x512",
-      "type": "image/svg+xml",
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
       "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
     }
   ],
-  "categories": ["business", "productivity"]
+  "categories": [
+    "business",
+    "productivity"
+  ],
+  "screenshots": []
 }
