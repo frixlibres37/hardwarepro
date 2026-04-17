@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="build-id" content="v360700-d640b9d6">
+<meta name="build-id" content="v362810-25a481ad">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#1a6b3c">
 <meta name="mobile-web-app-capable" content="yes">
@@ -576,8 +576,8 @@ tr:hover td{background:#f9fafb;}
     <!-- Big print button + actions -->
     <div style="display:flex;gap:8px;">
       <div style="flex:2;display:flex;flex-direction:column;gap:5px;">
-        <button onclick="printThermal58()" style="width:100%;padding:10px;background:#1a6b3c;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
-          🧾 POS Receipt (58mm)
+        <button onclick="printThermal48()" style="width:100%;padding:10px;background:#1a6b3c;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
+          🧾 POS Receipt (48mm)
         </button>
         <button onclick="printA4DR()" style="width:100%;padding:8px;background:#374151;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
           🖨️ Full DR (A4/Letter)
@@ -990,7 +990,7 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const MASTER_PIN = (()=>{ const _a='10',_b='27'; return _a+_b; })();
 
 // ============ BUILD ID (changes every deploy) ============
-const BUILD_ID = 'v360700-d640b9d6';
+const BUILD_ID = 'v362810-25a481ad';
 
 // ============ CONSTANTS ============
 const ICONS = {'Nails & Fasteners':'🔩','Tools':'🔧','Plumbing':'🚿','Electrical':'⚡','Paint & Supplies':'🎨','Safety Equipment':'⛑️','Building Materials':'🧱','Lumber & Wood':'🪵','Roofing':'🏠','Other':'📦'};
@@ -2270,139 +2270,336 @@ async function deleteEditReq(id){
   editRequests=editRequests.filter(r=>r.id!==id);rEditReqs();buildNav();toast('Edit request removed');
 }
 
-// ============ THERMAL PRINTING (58mm POS Receipt) ============
-function _esc(v){ return String(v??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+// ============ THERMAL PRINTING (48mm × 210mm — POS58 203dpi) ============
+function _esc(v){
+  return String(v??'')
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
 
-function buildThermalReceiptHTML(t){
+function buildThermal48HTML(t){
   const p = profile;
-  const initials = (p.initials||p.biz.split(' ').map(w=>w[0]).join('').slice(0,2)).toUpperCase()||'HP';
-  const logoEl = p.logoType==='image'&&p.logoData
-    ? `<img src="${p.logoData}" style="width:40px;height:40px;object-fit:cover;border-radius:5px;display:block;margin:0 auto 3px;" alt="">`
-    : `<div style="width:40px;height:40px;background:${p.logoColor||'#1a6b3c'};border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;margin:0 auto 3px;">${initials}</div>`;
+  const initials = (p.initials || p.biz.split(' ').map(w=>w[0]).join('').slice(0,2)||'HP').toUpperCase();
 
+  // Logo: 32px for 48mm (tighter than 58mm)
+  const logoEl = p.logoType==='image' && p.logoData
+    ? `<img src="${p.logoData}" style="width:32px;height:32px;object-fit:cover;border-radius:4px;display:block;margin:0 auto 2px;" alt="">`
+    : `<div style="width:32px;height:32px;background:${p.logoColor||'#1a6b3c'};border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;margin:0 auto 2px;">${initials}</div>`;
+
+  // Item rows — optimized for 46mm content width
   const itemRows = (t.detail||[]).map(d=>{
-    const amt = (Number(d.price)||0)*(Number(d.qty)||0);
+    const qty = Number(d.qty)||0;
+    const price = Number(d.price)||0;
+    const amt = qty * price;
+    // Name on first line, code+qty+price on second (saves width)
     return `<tr>
-      <td style="padding:3px 0 3px;font-size:11px;line-height:1.3;">
-        <strong>${_esc(d.name||'')}</strong>
-        <br><span style="color:#666;font-size:10px;">${_esc(d.code||'')} &nbsp; ${Number(d.qty)||0}${d.unit?' '+_esc(d.unit):''} × ₱${(Number(d.price)||0).toFixed(2)}</span>
+      <td style="padding:2px 0 3px;font-size:10px;line-height:1.3;max-width:28mm;word-break:break-word;">
+        <span style="font-weight:700;">${_esc(d.name||'')}</span><br>
+        <span style="color:#555;font-size:9px;">${_esc(d.code||'')}${d.code?' ':''}${qty}${d.unit?' '+_esc(d.unit):''} @ ₱${price.toFixed(2)}</span>
       </td>
-      <td style="padding:3px 0;font-size:11px;text-align:right;font-weight:700;white-space:nowrap;">₱${amt.toFixed(2)}</td>
+      <td style="padding:2px 0 3px;font-size:10px;font-weight:700;text-align:right;white-space:nowrap;vertical-align:top;">₱${amt.toFixed(2)}</td>
     </tr>`;
   }).join('');
 
-  const sub = (Number(t.total)||0)+(Number(t.discount)||0);
-  const payLabel = {'cash':'Cash','debit':'Debit/Card','bank':'Bank Transfer','ewallet':'E-Wallet'}[t.pm]||t.pm||'Payment';
+  const subtotal = (Number(t.total)||0) + (Number(t.discount)||0);
+  const payLabel = {'cash':'Cash','debit':'Debit/Card','bank':'Bank Xfer','ewallet':'E-Wallet'}[t.pm] || t.pm || 'Payment';
   const rtype = (t.receiptType||'DR')==='OR' ? 'ORDER RECEIPT' : 'DELIVERY RECEIPT';
+  const hasChange = (Number(t.cashReceived)||0) > 0;
+  const hasDiscount = (Number(t.discount)||0) > 0;
 
   return `<!DOCTYPE html>
-<html><head>
+<html>
+<head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>${_esc(t.drno||'Receipt')}</title>
 <style>
-@page { size: 58mm auto; margin: 0; }
-*{ box-sizing:border-box; margin:0; padding:0; }
-html,body{
-  width:58mm; margin:0; padding:0;
-  background:#fff; color:#000;
-  font-family:'Courier New',Courier,monospace;
-  font-size:11px; line-height:1.35;
-  -webkit-print-color-adjust:exact;
-  print-color-adjust:exact;
-}
-.wrap{ width:56mm; margin:0 auto; padding:3mm 0 6mm; }
-.c{ text-align:center; }
-.r{ text-align:right; }
-.b{ font-weight:700; }
-.sm{ font-size:10px; }
-.xs{ font-size:9px; color:#555; }
-.biz{ font-size:14px; font-weight:700; text-align:center; letter-spacing:.3px; }
-hr.solid{ border:none; border-top:1px solid #000; margin:4px 0; }
-hr.dash { border:none; border-top:1px dashed #888; margin:4px 0; }
-.rtype{ font-size:11px; font-weight:700; text-align:center; letter-spacing:1.5px; padding:1px 0; }
-.row{ display:flex; justify-content:space-between; padding:1px 0; font-size:10px; }
-.row .lbl{ color:#555; }
-.items{ width:100%; border-collapse:collapse; margin:2px 0; }
-.items thead th{ font-size:10px; font-weight:700; padding:2px 0; border-top:1px solid #000; border-bottom:1px solid #000; }
-.items thead th:last-child{ text-align:right; }
-.tot{ display:flex; justify-content:space-between; font-size:11px; padding:1px 0; }
-.grand{ font-size:14px; font-weight:700; border-top:2px solid #000; border-bottom:2px solid #000; padding:3px 0; margin:2px 0; }
-.change{ font-size:13px; font-weight:700; }
-.sig{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin:8px 0 4px; }
-.sig-line{ border-bottom:1px solid #888; height:16px; margin-bottom:2px; }
-.sig-lbl{ font-size:9px; color:#666; text-align:center; }
-.foot{ font-size:10px; text-align:center; color:#333; margin-top:4px; line-height:1.4; }
-.printbar{ background:#1a6b3c; padding:8px; text-align:center; }
-.printbar button{ border:none; padding:8px 16px; border-radius:6px; font-weight:700; font-size:12px; cursor:pointer; margin:0 3px; }
-.printbar .hint{ color:rgba(255,255,255,.75); font-size:9px; margin-top:4px; font-family:Arial,sans-serif; }
-@media print{ .printbar{ display:none!important; } }
-</style>
-</head><body>
-<div class="printbar">
-  <button onclick="window.print()" style="background:#fff;color:#1a6b3c;">🖨️ Print Receipt</button>
-  <button onclick="window.close()" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.3);">✕</button>
-  <div class="hint">Paper: 58mm · Scale: 100% · No margins</div>
-</div>
-<div class="wrap">
-  ${logoEl}
-  <div class="biz">${_esc(p.biz||'STORE')}</div>
-  ${p.addr?`<div class="c sm">${_esc(p.addr)}</div>`:''}
-  ${p.phone?`<div class="c sm">${_esc(p.phone)}${p.phone2?' / '+_esc(p.phone2):''}</div>`:''}
-  ${p.tin?`<div class="c xs">TIN: ${_esc(p.tin)}</div>`:''}
-  <hr class="solid">
-  <div class="rtype">${rtype}</div>
-  <div class="row"><span class="lbl">No.</span><span class="b">${_esc(t.drno||'')}</span></div>
-  <div class="row"><span class="lbl">Date</span><span>${_esc(fmtD(t.ts))}</span></div>
-  <div class="row"><span class="lbl">Cashier</span><span>${_esc(t.staffName||'')}</span></div>
-  <hr class="dash">
-  <div class="xs">CUSTOMER</div>
-  <div class="b sm">${_esc(t.customer||'Walk-in')}</div>
-  ${t.custPhone?`<div class="xs">${_esc(t.custPhone)}</div>`:''}
-  ${(t.custAddr||t.addr)?`<div class="xs">${_esc(t.custAddr||t.addr)}</div>`:''}
-  ${t.note?`<div class="xs"><em>Note: ${_esc(t.note)}</em></div>`:''}
-  <hr class="solid">
-  <table class="items">
-    <thead><tr><th>ITEM</th><th style="text-align:right;">AMT</th></tr></thead>
-    <tbody>${itemRows||'<tr><td colspan="2" style="text-align:center;padding:4px;color:#888;">No items</td></tr>'}</tbody>
-  </table>
-  <hr class="solid">
-  <div class="tot"><span>Subtotal</span><span>₱${sub.toFixed(2)}</span></div>
-  ${(Number(t.discount)||0)>0?`<div class="tot"><span>Discount</span><span>- ₱${(Number(t.discount)||0).toFixed(2)}</span></div>`:''}
-  <div class="tot grand"><span>TOTAL</span><span>₱${(Number(t.total)||0).toFixed(2)}</span></div>
-  <hr class="dash">
-  <div class="tot"><span class="lbl">Payment</span><span class="b">${_esc(payLabel)}</span></div>
-  ${t.ref?`<div class="tot"><span class="lbl">Ref</span><span>${_esc(t.ref)}</span></div>`:''}
-  ${(Number(t.cashReceived)||0)>0?`
-  <div class="tot"><span class="lbl">Cash</span><span>₱${(Number(t.cashReceived)||0).toFixed(2)}</span></div>
-  <div class="tot change"><span>CHANGE</span><span>₱${(Number(t.cashChange)||0).toFixed(2)}</span></div>`:''}
-  <div class="sig">
-    <div><div class="sig-line"></div><div class="sig-lbl">Prepared by<br>${_esc(t.staffName||'')}</div></div>
-    <div><div class="sig-line"></div><div class="sig-lbl">Received by</div></div>
-  </div>
-  <hr class="dash">
-  <div class="foot">${_esc(p.footer||'Thank you!')}</div>
-  ${p.disclaimer?`<div class="foot xs" style="font-style:italic;margin-top:2px;">${_esc(p.disclaimer)}</div>`:''}
-  <div class="foot xs" style="margin-top:6px;">*** ${rtype} ***</div>
-</div>
-</body></html>`;
+
+/* ═══════════════════════════════════════════
+   48mm THERMAL PRINT — POS58 203dpi OPTIMIZED
+   Paper: 48mm × 210mm  |  Margins: 0
+   ═══════════════════════════════════════════ */
+
+@page {
+  size: 48mm 210mm;
+  margin: 0mm;
 }
 
-function printThermal58(){
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  width: 48mm;
+  max-width: 48mm;
+  margin: 0 !important;
+  padding: 0 !important;
+  background: #fff;
+  color: #000;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 10px;
+  line-height: 1.35;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+/* Content wrapper — 1mm each side breathing room */
+.wrap {
+  width: 46mm;
+  margin: 0 auto;
+  padding: 2mm 0 5mm;
+}
+
+/* ── Typography ── */
+.biz-name {
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+  letter-spacing: 0.3px;
+  line-height: 1.2;
+}
+.c   { text-align: center; }
+.r   { text-align: right; }
+.b   { font-weight: 700; }
+.sm  { font-size: 9px; }
+.xs  { font-size: 8px; color: #555; }
+
+/* ── Dividers ── */
+.solid { border: none; border-top: 1px solid #000; margin: 3px 0; }
+.dash  { border: none; border-top: 1px dashed #777; margin: 3px 0; }
+
+/* ── Receipt type header ── */
+.rtype {
+  font-size: 10px;
+  font-weight: 700;
+  text-align: center;
+  letter-spacing: 1px;
+  padding: 1px 0;
+}
+
+/* ── Info rows (No., Date, Cashier) ── */
+.row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 9px;
+  padding: 1px 0;
+  line-height: 1.3;
+}
+.row .lbl { color: #555; }
+
+/* ── Items table — NO min-width, fully fluid ── */
+.items {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 2px 0;
+  table-layout: fixed;  /* prevents overflow */
+}
+.items col.name-col { width: 30mm; }
+.items col.amt-col  { width: 16mm; }
+.items thead th {
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 0;
+  border-top: 1px solid #000;
+  border-bottom: 1px solid #000;
+}
+.items thead th:last-child { text-align: right; }
+.items tbody td { vertical-align: top; }
+
+/* ── Totals ── */
+.tot {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  padding: 1px 0;
+}
+.grand {
+  font-size: 13px;
+  font-weight: 700;
+  border-top: 1.5px solid #000;
+  border-bottom: 1.5px solid #000;
+  padding: 2px 0;
+  margin: 2px 0;
+}
+.change-row {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* ── Signature lines ── */
+.sigs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin: 6px 0 3px;
+}
+.sig-line { border-bottom: 1px solid #888; height: 14px; margin-bottom: 2px; }
+.sig-lbl  { font-size: 8px; color: #666; text-align: center; line-height: 1.3; }
+
+/* ── Footer ── */
+.foot {
+  font-size: 9px;
+  text-align: center;
+  color: #333;
+  margin-top: 3px;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+/* ── Print bar (hidden when printing) ── */
+.printbar {
+  background: #1a6b3c;
+  padding: 7px 8px;
+  text-align: center;
+  font-family: Arial, sans-serif;
+}
+.printbar button {
+  border: none;
+  padding: 7px 14px;
+  border-radius: 5px;
+  font-weight: 700;
+  font-size: 11px;
+  cursor: pointer;
+  margin: 0 2px;
+}
+.print-hint {
+  color: rgba(255,255,255,.75);
+  font-size: 9px;
+  margin-top: 3px;
+  font-family: Arial, sans-serif;
+}
+
+@media print {
+  .printbar { display: none !important; }
+  html, body {
+    width: 48mm !important;
+    max-width: 48mm !important;
+  }
+}
+
+</style>
+</head>
+<body>
+
+<!-- ═══ PRINT BAR — hidden when printing ═══ -->
+<div class="printbar">
+  <button onclick="window.print()" style="background:#fff;color:#1a6b3c;">
+    🖨️ Print Receipt
+  </button>
+  <button onclick="window.close()" style="background:rgba(255,255,255,.15);color:#fff;border:1px solid rgba(255,255,255,.3);">
+    ✕ Close
+  </button>
+  <div class="print-hint">
+    Paper: 48mm × 210mm &nbsp;|&nbsp; Scale: 100% &nbsp;|&nbsp; Margins: None
+  </div>
+</div>
+
+<!-- ═══ RECEIPT ═══ -->
+<div class="wrap">
+
+  <!-- Header -->
+  ${logoEl}
+  <div class="biz-name">${_esc(p.biz||'STORE')}</div>
+  ${p.addr   ? `<div class="c sm">${_esc(p.addr)}</div>` : ''}
+  ${p.phone  ? `<div class="c sm">${_esc(p.phone)}${p.phone2 ? ' / '+_esc(p.phone2) : ''}</div>` : ''}
+  ${p.tin    ? `<div class="c xs">TIN: ${_esc(p.tin)}</div>` : ''}
+
+  <hr class="solid">
+
+  <!-- Receipt type + meta -->
+  <div class="rtype">${rtype}</div>
+  <div class="row"><span class="lbl">No.</span>   <span class="b">${_esc(t.drno||'')}</span></div>
+  <div class="row"><span class="lbl">Date</span>  <span>${_esc(fmtD(t.ts))}</span></div>
+  <div class="row"><span class="lbl">By</span>    <span>${_esc(t.staffName||'')}</span></div>
+
+  <hr class="dash">
+
+  <!-- Customer -->
+  <div class="xs">CUSTOMER</div>
+  <div class="b sm">${_esc(t.customer||'Walk-in')}</div>
+  ${t.custPhone         ? `<div class="xs">${_esc(t.custPhone)}</div>` : ''}
+  ${(t.custAddr||t.addr)? `<div class="xs">${_esc(t.custAddr||t.addr)}</div>` : ''}
+  ${t.note              ? `<div class="xs"><em>Note: ${_esc(t.note)}</em></div>` : ''}
+
+  <hr class="solid">
+
+  <!-- Items -->
+  <table class="items">
+    <colgroup>
+      <col class="name-col">
+      <col class="amt-col">
+    </colgroup>
+    <thead>
+      <tr>
+        <th style="text-align:left;">ITEM</th>
+        <th style="text-align:right;">AMT</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${itemRows || '<tr><td colspan="2" style="text-align:center;padding:4px;color:#888;font-size:9px;">No items</td></tr>'}
+    </tbody>
+  </table>
+
+  <hr class="solid">
+
+  <!-- Totals -->
+  <div class="tot"><span>Subtotal</span><span>₱${subtotal.toFixed(2)}</span></div>
+  ${hasDiscount ? `<div class="tot"><span>Discount</span><span>-₱${(Number(t.discount)||0).toFixed(2)}</span></div>` : ''}
+  <div class="tot grand"><span>TOTAL</span><span>₱${(Number(t.total)||0).toFixed(2)}</span></div>
+
+  <hr class="dash">
+
+  <!-- Payment -->
+  <div class="tot"><span class="lbl">Payment</span><span class="b">${_esc(payLabel)}</span></div>
+  ${t.ref ? `<div class="tot"><span class="lbl">Ref</span><span>${_esc(t.ref)}</span></div>` : ''}
+  ${hasChange ? `
+  <div class="tot"><span class="lbl">Cash</span>  <span>₱${(Number(t.cashReceived)||0).toFixed(2)}</span></div>
+  <div class="tot change-row"><span>CHANGE</span><span>₱${(Number(t.cashChange)||0).toFixed(2)}</span></div>` : ''}
+
+  <!-- Signatures -->
+  <div class="sigs">
+    <div>
+      <div class="sig-line"></div>
+      <div class="sig-lbl">Prepared by<br>${_esc(t.staffName||'')}</div>
+    </div>
+    <div>
+      <div class="sig-line"></div>
+      <div class="sig-lbl">Received by</div>
+    </div>
+  </div>
+
+  <hr class="dash">
+
+  <!-- Footer -->
+  <div class="foot">${_esc(p.footer||'Thank you!')}</div>
+  ${p.disclaimer ? `<div class="foot xs" style="font-style:italic;margin-top:2px;">${_esc(p.disclaimer)}</div>` : ''}
+  <div class="foot xs" style="margin-top:5px;letter-spacing:.5px;">*** ${rtype} ***</div>
+
+</div><!-- end .wrap -->
+</body>
+</html>`;
+}
+
+function printThermal48(){
   const drNo = document.getElementById('dr-modal-title')?.textContent?.trim();
-  const t = txns.find(x => String(x.drno)===String(drNo));
-  if(!t){ toast('No receipt to print'); return; }
-  const w = window.open('','_blank','width=320,height=700,menubar=no,toolbar=no,location=no,scrollbars=yes');
-  if(!w){ toast('⚠️ Allow popups first to open print window'); return; }
+  if(!drNo){ toast('No receipt to print'); return; }
+  const t = txns.find(x => String(x.drno) === String(drNo));
+  if(!t){ toast('Receipt not found'); return; }
+
+  // width=290 matches ~48mm popup — feels right on screen
+  const w = window.open('', '_blank',
+    'width=290,height=650,menubar=no,toolbar=no,location=no,scrollbars=yes,resizable=yes');
+  if(!w){ toast('⚠️ Allow popups to open print window'); return; }
+
   w.document.open();
-  w.document.write(buildThermalReceiptHTML(t));
+  w.document.write(buildThermal48HTML(t));
   w.document.close();
-  setTimeout(()=>{ try{ w.focus(); }catch(e){} }, 300);
+  // Focus popup so user can see print settings prompt
+  setTimeout(()=>{ try{ w.focus(); }catch(e){} }, 200);
 }
 
 function printA4DR(){
   window.print();
 }
+
 
 // ============ INVENTORY ============
 function rInv(q=''){
