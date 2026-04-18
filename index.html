@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="build-id" content="v431619-d74b79d6">
+<meta name="build-id" content="v531204-5adc89df">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#1a6b3c">
 <meta name="mobile-web-app-capable" content="yes">
@@ -316,6 +316,7 @@ tr:hover td{background:#f9fafb;}
               <div class="pm-btn" id="pm-ewallet" onclick="spm('ewallet')"><span style="font-size:12px;display:block;">📱</span>E-Wallet</div>
             </div>
             <div id="ref-wrap" style="display:none;margin-bottom:7px;"><input class="fi" id="pm-ref" placeholder="Reference no." style="font-size:11px;padding:4px 7px;"></div>
+            <div id="cash-recv-wrap" style="display:none;margin-bottom:7px;"><input class="fi" id="cash-received" type="number" placeholder="Cash received (₱)" style="font-size:11px;padding:4px 7px;"></div>
             <div style="display:flex;gap:5px;"><button class="btn" style="flex:1;font-size:12px;" onclick="clrcart()">Clear</button><button class="btn btn-p" style="flex:2;font-size:12px;" onclick="checkout()">Issue DR</button></div>
           </div>
         </div>
@@ -990,7 +991,7 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const MASTER_PIN = (()=>{ const _a='10',_b='27'; return _a+_b; })();
 
 // ============ BUILD ID (changes every deploy) ============
-const BUILD_ID = 'v431619-d74b79d6';
+const BUILD_ID = 'v531204-5adc89df';
 
 // ============ CONSTANTS ============
 const ICONS = {'Nails & Fasteners':'🔩','Tools':'🔧','Plumbing':'🚿','Electrical':'⚡','Paint & Supplies':'🎨','Safety Equipment':'⛑️','Building Materials':'🧱','Lumber & Wood':'🪵','Roofing':'🏠','Other':'📦'};
@@ -1732,7 +1733,7 @@ function fprod(q){
   if(cat) list=list.filter(p=>p.cat===cat);
   rpg(list);
 }
-function spm(m){selPM=m;['cash','debit','bank','ewallet'].forEach(k=>document.getElementById('pm-'+k).classList.toggle('sel',k===m));document.getElementById('ref-wrap').style.display=m!=='cash'?'block':'none';}
+function spm(m){selPM=m;['cash','debit','bank','ewallet'].forEach(k=>document.getElementById('pm-'+k).classList.toggle('sel',k===m));document.getElementById('ref-wrap').style.display=m!=='cash'?'block':'none';document.getElementById('cash-recv-wrap').style.display=m==='cash'?'block':'none';}
 function addCart(id){
   const p=prods.find(x=>x.id===id);if(!p||p.stock===0){toast('Out of stock!');return;}
   const ex=cart.find(c=>c.id===id);
@@ -3375,6 +3376,7 @@ async function saveProfile(){
       {key:'logo_data', value:(p.logoData||'').slice(0,500000), updated_at:now},
       {key:'initials',  value:p.initials||'HP',      updated_at:now},
       {key:'logo_color',value:p.logoColor||'#1a6b3c',updated_at:now},
+      {key:'theme_color',value:p.themeColor||'#1a6b3c',updated_at:now},
     ];
     // Hard 12s timeout — if upsert hangs (broken SW, network), throw
     const upsertResult = await Promise.race([
