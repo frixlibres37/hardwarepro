@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="build-id" content="v531204-5adc89df">
+<meta name="build-id" content="v868164-6bd04fb7">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#1a6b3c">
 <meta name="mobile-web-app-capable" content="yes">
@@ -372,6 +372,7 @@ tr:hover td{background:#f9fafb;}
       <div style="display:flex;gap:7px;margin-bottom:11px;">
         <input class="srch" style="flex:1;" placeholder="Search products..." oninput="finv(this.value)">
         <select class="sel-inp" id="inv-cf" onchange="finv('')"><option value="">All</option></select>
+        <button class="btn" onclick="refreshProdsFromDB()" title="Reload products from server">🔄 Refresh</button>
         <button class="btn btn-p" id="btn-add-prod" onclick="openProdModal()" style="display:none;">+ Add Product</button>
       </div>
       <div class="card" style="padding:0;overflow:hidden;"><div style="overflow-x:auto;"><table style="min-width:580px;">
@@ -396,6 +397,7 @@ tr:hover td{background:#f9fafb;}
     <div class="pg" id="pg-purchases">
       <div style="display:flex;gap:7px;margin-bottom:11px;">
         <input class="srch" style="flex:1;" placeholder="Search POs..." oninput="fpo(this.value)">
+        <button class="btn" onclick="refreshProdsFromDB()" title="Reload products from server">🔄 Refresh Stock</button>
         <button class="btn btn-p" onclick="openPOModal()">+ New Purchase</button>
       </div>
       <div id="po-list"></div>
@@ -886,7 +888,12 @@ tr:hover td{background:#f9fafb;}
 <div class="modal-ov" id="mo-po"><div class="modal" style="width:540px;">
   <div class="mo-ti">New Purchase Order</div>
   <div class="fg"><div class="fl"><label>Supplier</label><select class="fi" id="po-sup"><option value="">— Select —</option></select></div><div class="fl"><label>Date</label><input class="fi" id="po-dt" type="date"></div></div>
-  <div class="fl"><label>Items (Name, Qty, Unit Cost — one per line)</label><textarea class="fi" id="po-items" rows="5" style="resize:vertical;font-size:11px;" placeholder="Cement 40kg, 50, 240&#10;GI Pipe, 100, 85"></textarea></div>
+  <div class="fl"><label>Items (Name, Qty, Unit Cost — one per line)</label>
+    <div style="background:#e8f5ee;border:1px solid #86efac;border-radius:6px;padding:6px 10px;font-size:11px;color:#14532d;margin-bottom:5px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">&#128161; Names must match product exactly for auto-restock:
+      <select id="po-prod-pick" onchange="poPickProduct(this)" style="font-size:11px;padding:2px 5px;border:1px solid #86efac;border-radius:4px;background:#fff;cursor:pointer;"><option value="">+ Pick existing product</option></select>
+    </div>
+    <textarea class="fi" id="po-items" rows="5" style="resize:vertical;font-size:11px;" placeholder="Cement 40kg, 50, 240&#10;GI Pipe, 100, 85"></textarea>
+  </div>
   <div class="fg3"><div class="fl"><label>Delivery (₱)</label><input class="fi" id="po-del" type="number" value="0" oninput="calcPO()"></div><div class="fl"><label>Handling (₱)</label><input class="fi" id="po-hnd" type="number" value="0" oninput="calcPO()"></div><div class="fl"><label>Other (₱)</label><input class="fi" id="po-oth" type="number" value="0" oninput="calcPO()"></div></div>
   <div style="background:#f9fafb;border-radius:var(--radius);padding:10px;font-size:11px;margin-bottom:8px;" id="po-prev">Enter items to preview</div>
   <div class="fg"><div class="fl"><label>Payment</label><select class="fi" id="po-pay"><option>Cash</option><option>Bank Transfer</option><option>Credit</option></select></div><div class="fl"><label>Reference</label><input class="fi" id="po-ref"></div></div>
@@ -991,7 +998,7 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 const MASTER_PIN = (()=>{ const _a='10',_b='27'; return _a+_b; })();
 
 // ============ BUILD ID (changes every deploy) ============
-const BUILD_ID = 'v531204-5adc89df';
+const BUILD_ID = 'v868164-6bd04fb7';
 
 // ============ CONSTANTS ============
 const ICONS = {'Nails & Fasteners':'🔩','Tools':'🔧','Plumbing':'🚿','Electrical':'⚡','Paint & Supplies':'🎨','Safety Equipment':'⛑️','Building Materials':'🧱','Lumber & Wood':'🪵','Roofing':'🏠','Other':'📦'};
@@ -2764,6 +2771,30 @@ function printA4DR(){
 }
 
 
+
+// ============ REFRESH PRODUCTS FROM DB ============
+async function refreshProdsFromDB(){
+  showLoading('Refreshing products...');
+  try{
+    const {data:pData,error}=await db.from('products').select('*').order('id');
+    if(error) throw new Error(error.message);
+    if(pData){
+      prods=pData.map(p=>({id:p.id,code:p.code||'',name:p.name,cat:p.category||'Other',
+        price:parseFloat(p.price)||0,cost:parseFloat(p.cost)||0,
+        stock:parseInt(p.stock)||0,alert:parseInt(p.alert_qty)||5,
+        unit:p.unit||'pcs',status:p.status||'active'}));
+      saveLocalCache();
+      // Refresh all product views
+      try{rInv();}catch(e){}
+      try{fprod(document.getElementById('pos-si')?.value||'');}catch(e){}
+      toast('✅ Products refreshed from server ('+prods.length+' items)');
+    }
+  }catch(err){
+    toast('❌ Refresh failed: '+err.message,'err');
+  }finally{
+    hideLoading();
+  }
+}
 // ============ INVENTORY ============
 function rInv(q=''){
   const cats=[...new Set(prods.map(p=>p.cat))];
@@ -2783,7 +2814,7 @@ function rInv(q=''){
   }).join('');
 }
 function finv(q){rInv(q);}
-async function toggleSt(id){const p=prods.find(x=>x.id===id);if(!p)return;p.status=p.status==='active'?'inactive':'active';await db.from('products').update({status:p.status}).eq('id',id);toast(p.name+' → '+p.status);rInv();}
+async function toggleSt(id){const p=prods.find(x=>x.id===id);if(!p)return;p.status=p.status==='active'?'inactive':'active';await db.from('products').update({status:p.status}).eq('id',id);saveLocalCache();toast(p.name+' → '+p.status);rInv();}
 async function deleteProd(id){
   if(!isAdmin()){toast('Admin only');return;}
   const p=prods.find(x=>x.id===id);if(!p)return;
@@ -2796,6 +2827,7 @@ async function deleteProd(id){
   }
   await db.from('products').delete().eq('id',id);
   prods=prods.filter(x=>x.id!==id);
+  saveLocalCache();
   rInv();toast('🗑 "'+p.name+'" deleted');
 }
 function openProdModal(){editPid=null;document.getElementById('mo-pt').textContent='Add Product';['cd','nm','pr','co','st','al','un'].forEach(f=>document.getElementById('f-'+f).value='');document.getElementById('f-st2').value='active';document.getElementById('f-mg').textContent='—';document.getElementById('mo-prod').classList.add('open');}
@@ -2814,13 +2846,17 @@ async function saveProd(){
   if(dup){toast('❌ "'+nm+'" already exists in your products list','err');return;}
   const obj={code:document.getElementById('f-cd').value||'—',name:nm,category:document.getElementById('f-ct').value,price:parseFloat(document.getElementById('f-pr').value)||0,cost:parseFloat(document.getElementById('f-co').value)||0,stock:parseInt(document.getElementById('f-st').value)||0,alert_qty:parseInt(document.getElementById('f-al').value)||5,unit:document.getElementById('f-un').value||'pcs',status:document.getElementById('f-st2').value};
   if(editPid){
-    await db.from('products').update({...obj,updated_at:new Date().toISOString()}).eq('id',editPid);
+    const {error:updErr}=await db.from('products').update({...obj,updated_at:new Date().toISOString()}).eq('id',editPid);
+    if(updErr){toast('❌ Update failed: '+updErr.message,'err');return;}
     const p=prods.find(x=>x.id===editPid);Object.assign(p,{code:obj.code,name:obj.name,cat:obj.category,price:obj.price,cost:obj.cost,stock:obj.stock,alert:obj.alert_qty,unit:obj.unit,status:obj.status});
-    toast('Product updated');
+    saveLocalCache();
+    toast('✅ Product updated');
   } else {
-    const {data:ins}=await db.from('products').insert(obj).select().single();
+    const {data:ins,error:insErr}=await db.from('products').insert(obj).select().single();
+    if(insErr){toast('❌ Save failed: '+insErr.message,'err');return;}
     if(ins) prods.push({id:ins.id,code:ins.code||'',name:ins.name,cat:ins.category||'Other',price:parseFloat(ins.price)||0,cost:parseFloat(ins.cost)||0,stock:parseInt(ins.stock)||0,alert:parseInt(ins.alert_qty)||5,unit:ins.unit||'pcs',status:ins.status||'active'});
-    toast('Product added');
+    saveLocalCache();
+    toast('✅ Product added');
   }
   cm('mo-prod');rInv();
 }
@@ -2895,7 +2931,22 @@ function openPOModal(){
   document.getElementById('po-dt').value=td();
   ['items','del','hnd','oth','ref'].forEach(f=>{const e=document.getElementById('po-'+f);if(e)e.value=f==='del'||f==='hnd'||f==='oth'?'0':'';});
   document.getElementById('po-prev').textContent='Enter items to preview';
+  const picker=document.getElementById('po-prod-pick');
+  if(picker){
+    picker.innerHTML='<option value="">＋ Pick existing product</option>'+
+      prods.filter(p=>p.status==='active').sort((a,b)=>a.name.localeCompare(b.name))
+        .map(p=>`<option value="${p.name}">${p.name} (${p.stock} ${p.unit})</option>`).join('');
+  }
   document.getElementById('mo-po').classList.add('open');
+}
+function poPickProduct(sel){
+  if(!sel.value) return;
+  const ta=document.getElementById('po-items');
+  const prod=prods.find(p=>p.name===sel.value);
+  const line=sel.value+', 1, '+(prod?prod.cost||0:0);
+  ta.value=ta.value?(ta.value.trim()+'\n'+line):line;
+  sel.value='';
+  calcPO();
 }
 async function savePO(){
   const raw=document.getElementById('po-items').value.trim();if(!raw){toast('Add items');return;}
@@ -2904,11 +2955,37 @@ async function savePO(){
   let items=[];let gt=0;
   lines.forEach(l=>{const p=l.split(',').map(s=>s.trim());if(p.length>=3){const q=parseFloat(p[1])||0;const c=parseFloat(p[2])||0;gt+=q*c;items.push({name:p[0],qty:q,cost:c});}});
   const supId=document.getElementById('po-sup').value;const sup=supId?suppliers.find(s=>s.id==supId):null;
-  const poNo='PO-'+String(purchases.length+1).padStart(3,'0');
+  const poNo='PO-'+Date.now().toString(36).slice(-6).toUpperCase();
   const obj={po_no:poNo,supplier_id:supId?parseInt(supId):null,supplier_name:sup?sup.name:'Unknown',po_date:document.getElementById('po-dt').value,items,goods_total:gt,delivery_cost:extra,total_cost:gt+extra,payment_method:document.getElementById('po-pay').value,ref_no:document.getElementById('po-ref').value};
-  const {data:ins}=await db.from('purchase_orders').insert(obj).select().single();
+  const {data:ins,error:poErr}=await db.from('purchase_orders').insert(obj).select().single();
+  if(poErr){toast('❌ PO save failed: '+poErr.message,'err');return;}
   if(ins) purchases.push({id:ins.id,no:poNo,supplier:obj.supplier_name,supId,dt:obj.po_date,items,delivery:extra,goodsTotal:gt,totalCost:gt+extra,pay:obj.payment_method,ref:obj.ref_no,ts:Date.now()});
-  cm('mo-po');rPO();toast('PO saved');
+
+  // ── AUTO-RESTOCK: match PO items to products by name and add stock ──
+  let restocked=0;
+  for(const item of items){
+    if(!item.name||!item.qty) continue;
+    // Case-insensitive name match
+    const prod=prods.find(p=>p.name.toLowerCase()===item.name.toLowerCase());
+    if(prod){
+      prod.stock=(prod.stock||0)+item.qty;
+      const {error:stockErr}=await db.from('products')
+        .update({stock:prod.stock, updated_at:new Date().toISOString()})
+        .eq('id',prod.id);
+      if(!stockErr) restocked++;
+      else console.warn('[HP] PO restock failed for',prod.name,':',stockErr.message);
+    }
+  }
+  saveLocalCache();
+  cm('mo-po');
+  // Refresh all product-dependent views
+  try{rInv();}catch(e){}
+  try{rPO();}catch(e){}
+  if(restocked>0){
+    toast('✅ PO saved · '+restocked+' product(s) restocked');
+  } else {
+    toast('PO saved · No matching products found (check product names match PO items)');
+  }
 }
 async function deletePO(id){
   if(!isAdmin()){toast('Admin only');return;}
@@ -2941,9 +3018,11 @@ async function savePricingProd(){
   const lc=parseFloat(document.getElementById('r-lc').textContent.replace(/[₱,]/g,''));const rec=parseFloat(document.getElementById('r-rec').textContent.replace(/[₱,]/g,''));
   if(!lc||!rec){toast('Fill in calculator first');return;}
   const obj={code:'NEW-'+Date.now(),name:nm,category:'Other',price:Math.ceil(rec),cost:Math.round(lc*100)/100,stock:parseInt(document.getElementById('pc-qty').value)||0,alert_qty:5,unit:'pcs',status:'active'};
-  const {data:ins}=await db.from('products').insert(obj).select().single();
+  const {data:ins,error:insErr}=await db.from('products').insert(obj).select().single();
+  if(insErr){toast('❌ Save failed: '+insErr.message,'err');return;}
   if(ins) prods.push({id:ins.id,code:ins.code,name:ins.name,cat:'Other',price:parseFloat(ins.price),cost:parseFloat(ins.cost),stock:parseInt(ins.stock),alert:5,unit:'pcs',status:'active'});
-  toast('Product saved!');sp('inv');
+  saveLocalCache();
+  toast('✅ Product saved!');sp('inv');
 }
 
 // ============ EXPENSES ============
@@ -3823,21 +3902,26 @@ function saveLocalCache(){
     localStorage.setItem('hp_custs', JSON.stringify(custs));
     localStorage.setItem('hp_users', JSON.stringify(users));
     localStorage.setItem('hp_profile', JSON.stringify(profile));
+    // Cache recent txns (last 200) for offline DR history
+    const recentTxns = txns.slice(-200);
+    localStorage.setItem('hp_txns', JSON.stringify(recentTxns));
     localStorage.setItem('hp_cache_ts', Date.now().toString());
     console.log('[HP] Local cache saved:', prods.length, 'products,', custs.length, 'customers');
   }catch(e){ console.warn('[HP] Cache save failed:', e); }
 }
 function loadLocalCache(){
   try{
-    const cachedProds = localStorage.getItem('hp_prods');
-    const cachedCusts = localStorage.getItem('hp_custs');
-    const cachedUsers = localStorage.getItem('hp_users');
+    const cachedProds   = localStorage.getItem('hp_prods');
+    const cachedCusts   = localStorage.getItem('hp_custs');
+    const cachedUsers   = localStorage.getItem('hp_users');
     const cachedProfile = localStorage.getItem('hp_profile');
-    const cacheTs = localStorage.getItem('hp_cache_ts');
-    if(cachedProds) prods = JSON.parse(cachedProds);
-    if(cachedCusts) custs = JSON.parse(cachedCusts);
-    if(cachedUsers) users = JSON.parse(cachedUsers);
+    const cachedTxns    = localStorage.getItem('hp_txns');
+    const cacheTs       = localStorage.getItem('hp_cache_ts');
+    if(cachedProds)   prods   = JSON.parse(cachedProds);
+    if(cachedCusts)   custs   = JSON.parse(cachedCusts);
+    if(cachedUsers)   users   = JSON.parse(cachedUsers);
     if(cachedProfile){ const p=JSON.parse(cachedProfile); Object.assign(profile, p); }
+    if(cachedTxns)    txns    = JSON.parse(cachedTxns);
     const ageHrs = cacheTs ? (Date.now()-parseInt(cacheTs))/3600000 : 999;
     console.log('[HP] Local cache loaded. Age:', Math.round(ageHrs*10)/10, 'hrs');
     return true;
